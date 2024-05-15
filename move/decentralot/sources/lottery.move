@@ -13,6 +13,8 @@ module decentralot::lottery {
     use decentralot::config::{Self, Config, AdminCap};
     use decentralot::fee_distribution::{State, Self};
 
+    friend decentralot::project;
+
     const BPS: u64 = 10000;
     const VERSION: u64 = 1;
     const TICKET_WINNING_DFIELD_NAME: vector<u8> = b"winning_ticket";
@@ -26,7 +28,9 @@ module decentralot::lottery {
 
 
     struct Lottery has key, store {
-        id: UID,    
+        id: UID,
+        // Project this lottery belongs to
+        project: ID,
         // bank for the lottery
         bank: Balance<SUI>,
         // incentives for the lottery
@@ -39,25 +43,28 @@ module decentralot::lottery {
         end_date: u64,
         // Fee Distribution State
         state:  State,
+        // Lottery's lottery round
         round: u64
     }
 
-
-    public fun create_lottery(_: &AdminCap, config: &Config, ticket_price: u64, duration: u64, clock: &Clock, ctx: &mut TxContext) {
-        config::assert_version(config);
+    public(friend) fun new_lottery(ticket_price: u64, end_date: u64, pool_id: ID, ctx: &mut TxContext): ID {
 
         let lottery = Lottery {
             id: object::new(ctx),
+            project: pool_id,
             bank: balance::zero(),
             incentives: balance::zero(),
             ticket_price,
             total_tickets: 0,
-            end_date: clock::timestamp_ms(clock) + duration,
+            end_date,
             state: fee_distribution::new_state(),
             round: 0
         };
 
+        let lot_id = object::id(&lottery);
+
         transfer::share_object(lottery);
+        lot_id
     }
 
     public fun buy_ticket(lottery: &mut Lottery, config: &Config, input_coin: Coin<SUI>, amount: u64, clock: &Clock, ctx: &mut TxContext) {
@@ -79,7 +86,7 @@ module decentralot::lottery {
 
     }
 
-    public fun end_lottery(_: &AdminCap, lottery: &mut Lottery, config: &Config, winner: u64,  clock: &Clock, ctx: &mut TxContext) {
+    public(friend) fun end_lottery(_: &AdminCap, lottery: &mut Lottery, config: &Config, winner: u64,  clock: &Clock, ctx: &mut TxContext) {
         config::assert_version(config);
 
         // check that lottery has ended

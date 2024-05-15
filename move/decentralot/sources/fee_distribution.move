@@ -11,7 +11,15 @@ module decentralot::fee_distribution {
     friend decentralot::lottery;
 
     struct State has store {
-        balance: Balance<SUI>
+        balance: Balance<SUI>,
+
+    }
+
+    struct FeeDistributionTicket has key {
+        id: UID,
+        pool_id: ID,
+        amount: u64,
+        round_number: u64,
     }
 
     public(friend) fun new_state(): State {
