@@ -1,0 +1,9 @@
+[package]
+name = "decentralot"
+version = "0.1.0"
+
+[dependencies]
+Sui = { local = "/home/andreas/Documents/socituri/Socituri_Decentralot/move/sui/crates/sui-framework/packages/sui-framework" }
+
+[addresses]
+decentralot = "0x0"
