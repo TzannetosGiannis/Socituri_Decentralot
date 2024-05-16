@@ -8,12 +8,13 @@ module decentralot::lottery {
     use sui::clock::{Self, Clock};
     use sui::dynamic_field;
     use sui::coin::{Self, Coin};
+    use std::option::{Self, Option};
 
 
     use decentralot::config::{Self, Config, AdminCap};
-    use decentralot::fee_distribution::{State, Self};
 
-    friend decentralot::project;
+    friend decentralot::campaign;
+    friend decentralot::router;
 
     const BPS: u64 = 10000;
     const VERSION: u64 = 1;
@@ -30,8 +31,8 @@ module decentralot::lottery {
     struct Lottery has key, store {
         id: UID,
         // Project this lottery belongs to
-        project: ID,
         // bank for the lottery
+        project: ID,
         bank: Balance<SUI>,
         // incentives for the lottery
         incentives: Balance<SUI>,
@@ -41,15 +42,14 @@ module decentralot::lottery {
         total_tickets: u64,
         // Lottery's end date in ms
         end_date: u64,
-        // Fee Distribution State
-        state:  State,
         // Lottery's lottery round
-        round: u64
+        round: u64,
+        winner: Option<u64>
     }
 
-    public(friend) fun new_lottery(ticket_price: u64, end_date: u64, pool_id: ID, ctx: &mut TxContext): ID {
 
-        let lottery = Lottery {
+    public(friend) fun new_lottery(ticket_price: u64, end_date: u64, pool_id: ID, ctx: &mut TxContext): Lottery {
+        Lottery {
             id: object::new(ctx),
             project: pool_id,
             bank: balance::zero(),
@@ -57,28 +57,26 @@ module decentralot::lottery {
             ticket_price,
             total_tickets: 0,
             end_date,
-            state: fee_distribution::new_state(),
-            round: 0
-        };
-
-        let lot_id = object::id(&lottery);
-
-        transfer::share_object(lottery);
-        lot_id
+            round: 0,
+            winner: option::none()
+        }
     }
 
-    public fun buy_ticket(lottery: &mut Lottery, config: &Config, input_coin: Coin<SUI>, amount: u64, clock: &Clock, ctx: &mut TxContext) {
-        config::assert_version(config);
-
+    public(friend) fun buy_ticket(lottery: &mut Lottery, input_coin: Coin<SUI>, amount: u64, clock: &Clock, ctx: &mut TxContext): u64 {
         assert!(clock::timestamp_ms(clock) < lottery.end_date, ELotteryExpired);
 
         let total_price = amount * lottery.ticket_price;
         assert!(coin::value(&input_coin) == total_price, EIncorrectPaymentAmount);
         balance::join(&mut lottery.bank, coin::into_balance(input_coin));
+
+        let start_ticket_number = lottery.total_tickets;
         lottery.total_tickets = lottery.total_tickets + amount;
+
+        start_ticket_number
+
     }
 
-    public fun incentivize(lottery: &mut Lottery, config: &Config, input_coin: Coin<SUI>, clock: &Clock, ctx: &mut TxContext) {
+    public fun incentivize(config: &Config, lottery: &mut Lottery,input_coin: Coin<SUI>, clock: &Clock, ctx: &mut TxContext) {
         config::assert_version(config);
 
         assert!(clock::timestamp_ms(clock) < lottery.end_date, ELotteryExpired);
@@ -86,37 +84,51 @@ module decentralot::lottery {
 
     }
 
-    public(friend) fun end_lottery(_: &AdminCap, lottery: &mut Lottery, config: &Config, winner: u64,  clock: &Clock, ctx: &mut TxContext) {
-        config::assert_version(config);
-
+    public(friend) fun end_lottery(lottery: &mut Lottery, winner: u64,  clock: &Clock, ctx: &mut TxContext) {
         // check that lottery has ended
         assert!(lottery.end_date < clock::timestamp_ms(clock), ELotteryStillActive);
-        assert!(!dynamic_field::exists_(&lottery.id, TICKET_WINNING_DFIELD_NAME), ELotteryAlreadyEnded);
+        assert!(option::is_none(&lottery.winner), ELotteryAlreadyEnded);
 
-        dynamic_field::add(&mut lottery.id, TICKET_WINNING_DFIELD_NAME, winner);
+        lottery.winner = option::some(winner);
     }   
 
     #[allow(lint(self_transfer))]
-    public fun claim_prize(lottery: &mut Lottery, config: &Config, ctx: &mut TxContext) {
-        config::assert_version(config);
+    public(friend) fun claim_prize(lottery: &mut Lottery, protocol_fee_bps: u64, ctx: &mut TxContext): (Coin<SUI>, Coin<SUI>) {
 
-        assert!(dynamic_field::exists_(&lottery.id, TICKET_WINNING_DFIELD_NAME), ELotteryStillActive);
+        assert!(option::is_some(&lottery.winner), ELotteryStillActive);
         assert!(balance::value(&lottery.bank) == 0, EPrizeAlreadyClaimed);
 
         let total_amount = balance::value(&lottery.bank);
         
-        let protocol_fee_amount = total_amount * config::protocol_fee_bps(config) / BPS;
+        let protocol_fee_amount = total_amount * protocol_fee_bps / BPS;
         let protocol_coin = coin::take(&mut lottery.bank, protocol_fee_amount, ctx);
 
         let prize = coin::take(&mut lottery.bank,  total_amount - protocol_fee_amount, ctx);
         let incentives = balance::value(&lottery.incentives);
-        coin::join(&mut prize, coin::take(&mut lottery.incentives,incentives, ctx));
+        let incentives_coin = coin::take(&mut lottery.incentives,incentives, ctx);
 
-        fee_distribution::add_funds(&mut lottery.state, protocol_coin);
+        transfer::public_transfer(protocol_coin, @team);
 
-        transfer::public_transfer(prize, tx_context::sender(ctx));
-        
-        
+        (prize, incentives_coin)
+    }
+
+
+    // ---- View
+
+    public fun campaign_id(lottery: &Lottery): ID {
+        lottery.project
+    }
+
+    public fun round(lottery: &Lottery): u64 {
+        lottery.round
+    }
+
+    public fun is_over(lottery: &Lottery): bool{
+        option::is_some(&lottery.winner)
+    }
+
+    public fun winner(lottery: &Lottery): u64 {
+        *option::borrow(&lottery.winner)
     }
 
 

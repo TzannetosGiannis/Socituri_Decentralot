@@ -94,15 +94,7 @@ module decentralot::config {
         MAX_FEE_BPS
     }
 
-
-
     public fun version(): u64 {
         VERSION
     }
-
-    
-
-    
-
-
 }

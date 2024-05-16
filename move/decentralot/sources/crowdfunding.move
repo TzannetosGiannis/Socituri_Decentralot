@@ -8,6 +8,10 @@ module decentralot::crowdfunding {
     use sui::clock::{Self, Clock};
     use sui::dynamic_field;
     use sui::coin::{Self, Coin};
+    use std::string::{Self, String, utf8};
+
+    friend decentralot::campaign;
+    friend decentralot::router;
 
     const MAX_FEE_RATE_BPS: u64 = 3_000; // 30%
     const MAX_DEADLINE: u64 = 6 * 30 * 24 * 60 * 60; // 6 months
@@ -18,6 +22,8 @@ module decentralot::crowdfunding {
     const EFundingGoalReached: u64 = 3;
     const EFundingGoalNotReached: u64 = 4;
     const ENotYetExpired: u64 = 5;
+    const EInvalidCFParam: u64 = 6;
+    const ENotBeneficiary: u64 = 7;
     
 
     struct CrowdFunding has store {
@@ -25,22 +31,28 @@ module decentralot::crowdfunding {
         deadline: u64,
         beneficiary: address,
         fee_rate_bps: u64,
+        project_url: String,
         raised: Balance<SUI>
     }
 
-    public(friend) fun new_crowdfunding(goal: u64, deadline: u64, beneficiary: address, fee_rate_bps: u64): CrowdFunding {
+    public(friend) fun new_crowdfunding(goal: u64, deadline: u64, beneficiary: address, fee_rate_bps: u64, project_url: String): CrowdFunding {
+        assert!(goal > 0, EInvalidCFParam);
+        assert!(deadline > 0, EInvalidCFParam);
+        assert!(fee_rate_bps > 0, EInvalidCFParam);
         assert!(deadline <= MAX_DEADLINE, EDeadlineAboveMax);
         assert!(fee_rate_bps <= MAX_FEE_RATE_BPS, EFeeRateAboveMax);
         CrowdFunding {
-            goal: goal,
-            deadline: deadline,
-            beneficiary: beneficiary,
-            fee_rate_bps: fee_rate_bps,
+            goal,
+            deadline,
+            beneficiary,
+            fee_rate_bps,
+            project_url,
             raised: balance::zero()
         }
     }
 
     public(friend) fun close_successful(self: &mut CrowdFunding, ctx: &mut TxContext) {
+        assert!(tx_context::sender(ctx) == self.beneficiary, ENotBeneficiary);
         let raised = balance::value(&self.raised);
         assert!(raised >= self.goal, EFundingGoalNotReached);
         let coin_raised = coin::take(&mut self.raised, raised, ctx);
@@ -72,12 +84,16 @@ module decentralot::crowdfunding {
         self.beneficiary
     }
 
-    public fun fee_rate_bps(self: &CrowdFunding): u64 {
+    public fun keep_rate_bps(self: &CrowdFunding): u64 {
         self.fee_rate_bps
     }
 
     public fun raised(self: &CrowdFunding): u64 {
         balance::value(&self.raised)
+    }
+
+    public fun goal_reached(self: &CrowdFunding): bool {
+        balance::value(&self.raised) >= self.goal
     }
 
     public fun need_till_goal(self: &CrowdFunding): u64 {
