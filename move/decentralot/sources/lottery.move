@@ -62,6 +62,20 @@ module decentralot::lottery {
         }
     }
 
+    public(friend) fun new_round(lottery: &Lottery, end_date: u64, ctx: &mut TxContext): Lottery {
+        Lottery {
+            id: object::new(ctx),
+            project: lottery.project,
+            bank: balance::zero(),
+            incentives: balance::zero(),
+            ticket_price: lottery.ticket_price,
+            total_tickets: 0,
+            end_date,
+            round: lottery.round + 1,
+            winner: option::none()
+        }
+    }
+
     public(friend) fun buy_ticket(lottery: &mut Lottery, input_coin: Coin<SUI>, amount: u64, clock: &Clock, ctx: &mut TxContext): u64 {
         assert!(clock::timestamp_ms(clock) < lottery.end_date, ELotteryExpired);
 
@@ -130,6 +144,7 @@ module decentralot::lottery {
     public fun winner(lottery: &Lottery): u64 {
         *option::borrow(&lottery.winner)
     }
+    
 
 
  

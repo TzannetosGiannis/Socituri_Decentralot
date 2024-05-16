@@ -68,9 +68,6 @@ module decentralot::router {
 
         coin::join(&mut prize, incentives);
         transfer::public_transfer(prize, tx_context::sender(ctx));
-
-
-
     }
 
     public fun refund(cfg: &Config, campaign: &mut Campaign, ticket: LotteryTicket, ctx: &mut TxContext){
