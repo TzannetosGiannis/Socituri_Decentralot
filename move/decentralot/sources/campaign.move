@@ -17,6 +17,7 @@ module decentralot::campaign {
     use decentralot::crowdfunding::{Self, CrowdFunding};
     use decentralot::refund::{Self, Refund};
     use decentralot::config::{Config, AdminCap, Self};
+    use decentralot::incentive_treasury::{Self, IncentiveTreasury};
 
     friend decentralot::router;
 
@@ -115,7 +116,7 @@ module decentralot::campaign {
         crowdfunding::close_successful(option::borrow_mut(&mut campaign.crowdfunding), ctx);
     }
 
-    public fun refund_campaign(cfg: &Config, campaign: &mut Campaign, clock: &Clock, ctx: &mut TxContext){
+    public fun refund_campaign(cfg: &Config, incentives: &mut IncentiveTreasury, campaign: &mut Campaign, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
 
         assert!(is_cf_campaign(campaign), ECannotRefundNonCFCampaign);
@@ -123,14 +124,17 @@ module decentralot::campaign {
 
         let raised_coin = crowdfunding::close_unsuccessful(option::borrow_mut(&mut campaign.crowdfunding), clock, ctx);
         let total_raised = coin::value(&raised_coin);
+
+        // 90% of the raised funds are refunded to the backers, split equally
+        let refund_amount = 9_000 * total_raised / 10_000;
+        let refund_amount_per_ticket = refund_amount / campaign.total_tickets;
         
-        let refund_amount_per_ticket = total_raised / campaign.total_tickets;
+        // The remaining amount is incentive portion (10%) and dust
+        let incentive_amount = total_raised - (campaign.total_tickets * refund_amount_per_ticket);
         
-        let dust = total_raised - (campaign.total_tickets * refund_amount_per_ticket);
-        
-        if (dust != 0){
-            let dust_coin = coin::split(&mut raised_coin, dust, ctx);
-            transfer::public_transfer(dust_coin, @team);
+        if (incentive_amount != 0){
+            let incentive_coin = coin::split(&mut raised_coin, incentive_amount, ctx);
+            incentive_treasury::push_incentives(cfg, incentives, incentive_coin);
         };
 
         let refund = refund::new_refund(raised_coin, refund_amount_per_ticket);
