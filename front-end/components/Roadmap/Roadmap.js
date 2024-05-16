@@ -50,8 +50,8 @@ const Roadmap = () => {
     return (
         <div id='roadmap' className="bg-gray-800 py-16 lg:py-24">
             <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                <div className="text-4xl lg:text-5xl font-bold text-center mb-8 lg:mb-12">ROADMAP</div>
-                <div className="text-xl lg:text-2xl font-semibold text-center mb-8 lg:mb-12">The road ahead</div>
+                <div className="text-4xl lg:text-5xl font-bold text-center text-white mb-8 lg:mb-12">ROADMAP</div>
+                <div className="text-xl lg:text-2xl font-semibold text-center text-white mb-8 lg:mb-12">The road ahead</div>
                 {/* Map through each phase and render tasks */}
                 <div className="grid grid-cols-3 gap-8">
                     {phases.map((phase, index) => (
@@ -74,7 +74,7 @@ const Roadmap = () => {
                                             </svg>}
                                         </div>
                                         {/* Task title */}
-                                        <div className={`text-lg ${task.done ? 'line-through text-gray-500' : ''}`}>{task.name}</div>
+                                        <div className={`text-lg ${task.done ? 'line-through text-gray-500' : 'text-white'}`}>{task.name}</div>
                                     </div>
                                 ))}
                             </div>

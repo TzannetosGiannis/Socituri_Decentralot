@@ -24,7 +24,7 @@ const Services = () => {
     return (
         <div id='services' className="bg-gray-800 py-16 lg:py-24">
             <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                <h2 className="text-4xl lg:text-5xl font-bold text-center mb-8 lg:mb-12">Services</h2>
+                <h2 className="text-4xl text-white lg:text-5xl font-bold text-center mb-8 lg:mb-12">Services</h2>
                 {services.map((service, index) => (
                     <div key={index} className={`flex flex-col lg:flex-row ${index % 2 === 0 ? 'lg:flex-row-reverse' : ''} mb-8 lg:mb-12`}>
                         <div className="lg:w-1/2 lg:pr-8">
@@ -32,7 +32,7 @@ const Services = () => {
                         </div>
                         <div className="lg:w-1/2 lg:pl-8">
                             <h3 className="text-2xl lg:text-3xl font-semibold mb-2">{service.title}</h3>
-                            <p className="text-sm lg:text-base text-gray-600">{service.description}</p>
+                            <p className="text-sm lg:text-base text-gray-400">{service.description}</p>
                         </div>
                     </div>
                 ))}
