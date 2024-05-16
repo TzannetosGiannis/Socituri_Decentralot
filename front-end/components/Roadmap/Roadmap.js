@@ -8,26 +8,23 @@ const Roadmap = () => {
             name: "Genesis",
             color: "#FF6B6B",
             tasks: [
-                { name: "Trail of Bits audit", done: true },
-                { name: "Lending alpha launch", done: true },
-                { name: "Lending analytics", done: true }
+                { name: "Developed Contracts", done: true },
+                { name: "Launch Dapp v1", done: true },
+                { name: "Contract audits", done: false },
+                { name: "Deployment on testnet", done: false }
             ]
         },
         {
             phase: "Phase 2",
-            name: "Expansion",
+            name: "Launch",
             color: "#4FD1C5",
             tasks: [
-                { name: "Lending mainnet launch", done: true },
-                { name: "Nostra Points launch", done: true },
-                { name: "Nostra Pools launch", done: true },
-                { name: "Nostra Swap launch", done: true },
-                { name: "Nostra mobile support", done: true },
-                { name: "DeFi Spring", done: true },
-                { name: "Nostra Staked STRK", done: true },
-                { name: "UNO stablecoin", done: true },
-                { name: "Nostra Bridge launch", done: false },
-                { name: "Permissionless pool deployment", done: false }
+                { name: "Launch Dapp v2 on mainet", done: false },
+                { name: "Reward early supporters", done: false },
+                { name: "Decentralot Points launch", done: false },
+                { name: "Secure incentives from partners", done: false },
+                { name: "Permisionless lottery launchpad", done: false },
+                { name: "Democratize protocol fees to community", done: false },   
             ]
         },
         {
@@ -35,13 +32,10 @@ const Roadmap = () => {
             name: "Momentum",
             color: "#FFD166",
             tasks: [
-                { name: "Nostra iOS App", done: false },
-                { name: "Continue partnerships and integrations", done: false },
-                { name: "Prepaid credit card integration", done: false },
-                { name: "Famiglia Hackathon", done: false },
-                { name: "AI integration", done: false },
-                { name: "Embedded wallet", done: false },
-                { name: "Governance", done: false }
+                { name: "Strategic ecosystem partnerships", done: false },
+                { name: "Design tokenomics", done: false },
+                { name: "DAO launch", done: false },
+                
             ]
         }
         // Add more phases as needed
