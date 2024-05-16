@@ -8,8 +8,8 @@ const Hero = () => {
             <div className="max-w-7xl mx-auto px-4 lg:px-8 flex flex-col lg:flex-row items-center">
                 {/* Left column */}
                 <div className="lg:w-1/2 lg:pr-8">
-                    <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4 lg:mb-8">Your <span className="text-indigo-500">Revolutionary</span> Solution</h1>
-                    <p className="text-lg lg:text-xl text-gray-300 mb-8 lg:mb-12">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut auctor magna ut tellus eleifend, eget suscipit neque congue. Vivamus ac lorem quis magna dictum vehicula.</p>
+                    <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4 lg:mb-8">Empowering Fairness and Innovation</h1>
+                    <p className="text-lg lg:text-xl text-gray-300 mb-8 lg:mb-12">Join our community to experience trustless and verifiable randomness, support ecosystem projects through crowdfunding, and participate in a truly decentralized and fair lottery.</p>
                     <div className="flex justify-center lg:justify-start">
                         <Link
                             href="#"
@@ -20,7 +20,7 @@ const Hero = () => {
                 </div>
                 {/* Right column */}
                 <div className="lg:w-1/2 lg:pl-8 mt-8 lg:mt-0">
-                    <img className="mx-auto lg:mx-0 rounded-lg shadow-lg" src="/placeholder-image.jpg" alt="Product Image" />
+                    <img className="mx-auto lg:mx-0 rounded-lg shadow-lg" src="/lottery.webp" alt="Product Image" />
                 </div>
             </div>
         </div>

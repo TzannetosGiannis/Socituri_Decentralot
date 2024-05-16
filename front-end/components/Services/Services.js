@@ -5,18 +5,18 @@ const Services = () => {
     const services = [
         {
             image: "/service1.jpg",
-            title: "Service 1",
-            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut auctor magna ut tellus eleifend.",
+            title: "Trustless and Verifiable Randomness",
+            description: "Our platform offers trustless and verifiable randomness, ensuring fair and transparent processes for all participants."
         },
         {
             image: "/service2.jpg",
-            title: "Service 2",
-            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut auctor magna ut tellus eleifend.",
+            title: "Participate in Protocol Earnings",
+            description: "Users can actively participate in protocol earnings, gaining rewards and contributing to the growth and sustainability of the platform."
         },
         {
             image: "/service3.jpg",
-            title: "Service 3",
-            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut auctor magna ut tellus eleifend.",
+            title: "Bootstrap Crowdfunding Lottery Campaigns",
+            description: "Kickstart your projects with our bootstrap crowdfunding lottery campaigns, providing a unique and engaging way to raise funds."
         },
         // Add more services as needed
     ];

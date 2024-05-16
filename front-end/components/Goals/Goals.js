@@ -5,19 +5,19 @@ const FeatureHighlight = () => {
     // Define an array of features with their respective details
     const features = [
         {
-            title: "Efficient AMM",
-            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut auctor magna ut tellus eleifend.",
-            icon: "/icons/efficient-amm.svg",
+            title: "Truly Decentralized Fair Lottery",
+            description: "Ensures fair and transparent lottery using blockchain technology.",
+            icon: "/icons/decentralized-lottery.svg",
         },
         {
-            title: "Low Gas Fees",
-            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut auctor magna ut tellus eleifend.",
-            icon: "/icons/low-gas-fees.svg",
+            title: "Support Ecosystem Projects",
+            description: "Facilitates crowdfunding for innovative ecosystem projects.",
+            icon: "/icons/crowdfunding.svg",
         },
         {
-            title: "One-click Rebalance",
-            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut auctor magna ut tellus eleifend.",
-            icon: "/icons/one-click-rebalance.svg",
+            title: "Community Centered",
+            description: "Prioritizes user needs and fosters a supportive community.",
+            icon: "/icons/community-centered.svg",
         },
         // Add more features as needed
     ];
