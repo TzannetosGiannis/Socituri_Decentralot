@@ -23,7 +23,7 @@ const Roadmap = () => {
                 { name: "Reward early supporters", done: false },
                 { name: "Decentralot Points launch", done: false },
                 { name: "Secure incentives from partners", done: false },
-                { name: "Permisionless lottery launchpad", done: false },
+                { name: "Permissionless lottery launchpad", done: false },
                 { name: "Democratize protocol fees to community", done: false },   
             ]
         },
@@ -34,41 +34,38 @@ const Roadmap = () => {
             tasks: [
                 { name: "Strategic ecosystem partnerships", done: false },
                 { name: "Design tokenomics", done: false },
-                { name: "DAO launch", done: false },
-                
+                { name: "DAO launch", done: false },    
             ]
         }
         // Add more phases as needed
     ];
 
     return (
-        <div id='roadmap' className="bg-gray-800 py-16 lg:py-24">
+        <div id='roadmap' className="bg-gray-800 py-8 lg:py-16">
             <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                <div className="text-4xl lg:text-5xl font-bold text-center text-white mb-8 lg:mb-12">ROADMAP</div>
-                <div className="text-xl lg:text-2xl font-semibold text-center text-white mb-8 lg:mb-12">The road ahead</div>
+                <div className="text-3xl lg:text-4xl font-bold text-center text-white mb-4 lg:mb-8">ROADMAP</div>
+                <div className="text-lg lg:text-xl font-semibold text-center text-white mb-4 lg:mb-8">The road ahead</div>
                 {/* Map through each phase and render tasks */}
-                <div className="grid grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {phases.map((phase, index) => (
-                        <div key={index}>
+                        <div key={index} className="border border-gray-600 rounded-lg p-4 lg:p-6">
                             {/* Phase tag */}
                             <div className="flex items-center mb-2">
                                 <div className={`rounded-full px-2 py-1 text-sm text-center mr-2`} style={{ backgroundColor: phase.color, color: 'white' }}>{phase.phase}</div>
-                                <div className={`text-2xl lg:text-3xl font-bold`} style={{ color: phase.color }}>{phase.name}</div>
+                                <div className={`text-xl lg:text-2xl font-bold`} style={{ color: phase.color }}>{phase.name}</div>
                             </div>
-                            {/* Separator line */}
-                            <div className={`border-t border-gray-300 mb-4`} style={{ borderColor: phase.color }}></div>
                             {/* List of tasks */}
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="mt-2">
                                 {phase.tasks.map((task, idx) => (
-                                    <div key={idx} className="flex items-center">
+                                    <div key={idx} className="flex items-center mb-2">
                                         {/* Task status checkbox */}
-                                        <div style={{ backgroundColor: task.done ? phase.color : 'white', color: 'white' }} className={`w-6 h-6 rounded-sm mr-2 flex items-center justify-center`}>
+                                        <div className={`w-6 h-6 mr-2 rounded-full flex items-center justify-center ${task.done ? 'bg-green-500' : 'bg-gray-400'}`}>
                                             {task.done && <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 text-white">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>}
                                         </div>
                                         {/* Task title */}
-                                        <div className={`text-lg ${task.done ? 'line-through text-gray-500' : 'text-white'}`}>{task.name}</div>
+                                        <div className={`text-base ${task.done ? 'line-through text-gray-500' : 'text-white'}`}>{task.name}</div>
                                     </div>
                                 ))}
                             </div>
