@@ -5,7 +5,7 @@ import { faTicket, faInfo, faAward } from '@fortawesome/free-solid-svg-icons';
 
 const ActiveLotteryPage = () => {
     const { isLoggedIn } = useAuth();
-    const [countdown, setCountdown] = useState(3600); // Example countdown value
+    const [countdown, setCountdown] = useState(3600); // Example countdown time in seconds
     const [totalPool, setTotalPool] = useState(1000); // Example total prize pool
     const [totalTicketsBought, setTotalTicketsBought] = useState(50); // Example total tickets bought
     const [activeTab, setActiveTab] = useState('countdown'); // State to track active tab
