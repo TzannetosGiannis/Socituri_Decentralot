@@ -2,7 +2,7 @@
 module decentralot::lottery {
 
     use sui::sui::SUI;
-    use sui::event::{Self};
+    // use sui::event;
     use sui::transfer;
     use sui::object::{Self, UID, ID};
     use sui::tx_context::{Self, TxContext};
@@ -11,10 +11,10 @@ module decentralot::lottery {
     use sui::dynamic_field;
     use sui::coin::{Self, Coin};
     use std::option::{Self, Option};
-    use std::string::{Self, String, utf8};
+    use std::string::String;
 
     use decentralot::crowdfunding::{Self, CrowdFunding};
-    use decentralot::refund::{Self, Refund};
+    use decentralot::refund;
     use decentralot::config::{Self, Config, AdminCap};
     use decentralot::incentive_treasury::{Self, IncentiveTreasury};
     use decentralot::lottery_ticket::{Self, LotteryTicket};
@@ -118,13 +118,13 @@ module decentralot::lottery {
         };
 
         let end_date = now_ms + campaign.duration;
-        let new_lottery = new_lottery(lottery.ticket_price, lottery.end_date, lottery.round + 1, lottery.campaign, ctx);
+        let new_lottery = new_lottery(lottery.ticket_price, end_date, lottery.round + 1, lottery.campaign, ctx);
         campaign.latest_lotery = option::some(object::id(&new_lottery));
 
         transfer::public_share_object(new_lottery);
     }
 
-    public fun end_lottery(_: &AdminCap, cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, winner:u64, clock: &Clock, ctx: &mut TxContext){
+    public fun end_lottery(_: &AdminCap, cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, winner:u64, clock: &Clock){
         config::assert_version(cfg);
         assert!(!has_active_lottery(campaign), EActiveLotteryExists);
         assert!(object::id(campaign) == lottery.campaign, EObjectMissmatch);
@@ -197,7 +197,7 @@ module decentralot::lottery {
         };
     }
 
-    public fun claim_prize(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, ticket: LotteryTicket, clock: &Clock, ctx: &mut TxContext){
+    public fun claim_prize(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, ticket: LotteryTicket, ctx: &mut TxContext){
         config::assert_version(cfg);
 
         assert!(is_lottery_over(lottery), EWinnerNotDecided);
@@ -252,7 +252,7 @@ module decentralot::lottery {
         transfer::public_transfer(reimburshment, tx_context::sender(ctx));
     }
 
-    public fun incentivize(config: &Config, lottery: &mut Lottery,input_coin: Coin<SUI>, clock: &Clock, ctx: &mut TxContext) {
+    public fun incentivize(config: &Config, lottery: &mut Lottery,input_coin: Coin<SUI>, clock: &Clock) {
         config::assert_version(config);
 
         assert!(clock::timestamp_ms(clock) < lottery.end_date, ELotteryExpired);
