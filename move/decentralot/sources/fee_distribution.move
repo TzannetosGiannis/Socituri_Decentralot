@@ -2,9 +2,15 @@ module decentralot::fee_distribution {
     use sui::object::{Self, UID, ID};
     use sui::tx_context::TxContext;
 
+    friend decentralot::lottery;
+
     const FIFTY_SUI: u64 = 50_000000000; // 50 SUI
+
+    // ----- Error
+    const ENotEnoughTickets: u64 = 1;
     
-    struct FeeDistribution has store {
+    
+    struct FeeDistribution has store, drop {
         total_tickets: u64,
         remaining_tickets: u64,
         price_per_ticket: u64,
@@ -16,17 +22,16 @@ module decentralot::fee_distribution {
         redeem_round: u64,
         amount: u64
     }
-
     
 
     public(friend) fun new_fee_distribution(total_fees: u64): FeeDistribution {
+        // @TODO What if total_tickets == 0?
         let total_tickets = total_fees / FIFTY_SUI;
         if (total_tickets < 50) {
             total_tickets = 50
         };
 
-        // @TODO round up
-        let price_per_ticket = total_fees / total_tickets;
+        let price_per_ticket = ceil_div(total_fees, total_tickets);
         
         FeeDistribution {
             total_tickets,
@@ -35,8 +40,9 @@ module decentralot::fee_distribution {
         }
     }
 
-    // @TODO this is just a mock for now
-    public(friend) fun new_fee_ticket(campaing_id: ID, redeem_round: u64, amount: u64, ctx: &mut TxContext): FeeDistributionTicket {
+    public(friend) fun new_fee_ticket(fee_distribution: &mut FeeDistribution, campaing_id: ID, redeem_round: u64, amount: u64, ctx: &mut TxContext): FeeDistributionTicket {
+        assert!(fee_distribution.remaining_tickets >= amount, ENotEnoughTickets);
+        fee_distribution.remaining_tickets = fee_distribution.remaining_tickets - amount;
         FeeDistributionTicket {
             id: object::new(ctx),
             campaign: campaing_id,
@@ -45,4 +51,24 @@ module decentralot::fee_distribution {
         }
     }
 
+    public(friend) fun redeem_fee_ticket(ticket: FeeDistributionTicket): (ID, u64, u64){
+        let FeeDistributionTicket {id, campaign, redeem_round, amount} = ticket;
+        object::delete(id);
+        (campaign, redeem_round, amount)
+    }
+
+    // ----- View functions
+
+    public fun fee_distribution_ticket_details(ticket: &FeeDistributionTicket): (ID, u64, u64) {
+        (ticket.campaign, ticket.redeem_round, ticket.amount)
+    }
+
+
+    fun ceil_div(x: u64, y: u64): u64 {
+        // `y` will never be 0.
+        if (x == 0) {
+            0
+        }
+        else (x - 1) / y + 1
+    }
 }

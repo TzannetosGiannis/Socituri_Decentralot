@@ -18,6 +18,7 @@ module decentralot::lottery {
     use decentralot::config::{Self, Config, AdminCap};
     use decentralot::incentive_treasury::{Self, IncentiveTreasury};
     use decentralot::lottery_ticket::{Self, LotteryTicket};
+    use decentralot::fee_distribution::{Self, FeeDistribution, FeeDistributionTicket};
 
     const BPS_MAX: u64 = 10_000;
 
@@ -61,6 +62,8 @@ module decentralot::lottery {
         end_date: u64,
         // Lottery's lottery round
         round: u64,
+        protocol_fees: Balance<SUI>,
+        fee_distribution: Option<FeeDistribution>,
         winner: Option<u64>
     }
 
@@ -72,7 +75,7 @@ module decentralot::lottery {
             total_tickets: 0,
             duration,
             latest_lotery: option::none(),
-            crowdfunding: option::none()
+            crowdfunding: option::none()        
         };
 
         let end_date = clock::timestamp_ms(clock) + duration;
@@ -133,6 +136,8 @@ module decentralot::lottery {
         assert!(option::is_none(&lottery.winner), ELotteryAlreadyEnded);
 
         lottery.winner = option::some(winner);
+        let fd = fee_distribution::new_fee_distribution(balance::value(&lottery.protocol_fees));
+        lottery.fee_distribution = option::some(fd);
         campaign.latest_lotery = option::none();
     }
 
@@ -219,7 +224,8 @@ module decentralot::lottery {
         let total_amount = balance::value(&lottery.bank);
         
         let protocol_fee_amount = total_amount *  config::protocol_fee_bps(cfg) / BPS_MAX;
-        let protocol_coin = coin::take(&mut lottery.bank, protocol_fee_amount, ctx);
+        let protocol_balance = balance::split(&mut lottery.bank, protocol_fee_amount);
+        balance::join(&mut lottery.protocol_fees, protocol_balance);
 
         let prize = coin::take(&mut lottery.bank,  total_amount - protocol_fee_amount, ctx);
         let incentives = balance::value(&lottery.incentives);
@@ -237,7 +243,6 @@ module decentralot::lottery {
         lottery_ticket::burn(ticket);
 
         coin::join(&mut prize, incentives_coin);
-        transfer::public_transfer(protocol_coin, @team);
         transfer::public_transfer(prize, tx_context::sender(ctx));
     }
 
@@ -252,6 +257,9 @@ module decentralot::lottery {
         transfer::public_transfer(reimburshment, tx_context::sender(ctx));
     }
 
+
+    // ------- Incentivizing functions
+
     public fun incentivize(config: &Config, lottery: &mut Lottery,input_coin: Coin<SUI>, clock: &Clock) {
         config::assert_version(config);
 
@@ -265,8 +273,13 @@ module decentralot::lottery {
 
         let incentive_coin = incentive_treasury::pull_incentives(treasury, lottery.campaign, ctx);
         balance::join(&mut lottery.incentives, coin::into_balance(incentive_coin));
-
     }
+
+    // -------- Fee Distribution
+    // 1. Buy fee distribution ticket
+    // 2. Redeem fee distribution ticket
+    // 3. Team can claim remaining fee distribution tickets
+    
 
     // ----- View Functions
     public fun lottery_campaign_id(lottery: &Lottery): ID {
@@ -312,6 +325,8 @@ module decentralot::lottery {
             total_tickets: 0,
             end_date,
             round,
+            protocol_fees: balance::zero(),
+            fee_distribution: option::none(),
             winner: option::none()
         }
     }
