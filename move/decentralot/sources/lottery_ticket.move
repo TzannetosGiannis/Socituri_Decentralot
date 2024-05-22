@@ -1,16 +1,9 @@
 module decentralot::lottery_ticket {
-    use sui::sui::SUI;
-    use sui::event::{Self};
-    use sui::transfer;
     use sui::object::{Self, UID, ID};
-    use sui::tx_context::{Self, TxContext};
-    use sui::balance::{Self, Balance};
-    use sui::clock::{Self, Clock};
-    use sui::dynamic_field;
-    use sui::coin::{Self, Coin};
-    use std::string::{Self, String, utf8};
+    use sui::tx_context::TxContext;
 
-    friend decentralot::router;
+
+    friend decentralot::lottery;
     
     struct LotteryTicket has key, store {
         id: UID,
@@ -36,7 +29,7 @@ module decentralot::lottery_ticket {
         ticket.campaign == campaign
     }
 
-    public(friend) fun burn(ticket: LotteryTicket, ctx: &mut TxContext) {
+    public(friend) fun burn(ticket: LotteryTicket) {
         let LotteryTicket {id, campaign: _, ticket_number: _, lottery_round: _} = ticket;
         object::delete(id);
     }

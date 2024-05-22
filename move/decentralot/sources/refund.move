@@ -1,19 +1,10 @@
 module decentralot::refund {
     use sui::sui::SUI;
-    use sui::event::{Self};
-    use sui::transfer;
-    use sui::object::{Self, UID, ID};
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::TxContext;
     use sui::balance::{Self, Balance};
-    use sui::clock::{Self, Clock};
-    use sui::dynamic_field;
     use sui::coin::{Self, Coin};
-    use std::string::{Self, String, utf8};
 
-    friend decentralot::router;
-    friend decentralot::campaign;
-
-    const ENotEligible: u64 = 0;
+    friend decentralot::lottery;
 
     struct Refund has store {
         bank: Balance<SUI>,
@@ -33,7 +24,7 @@ module decentralot::refund {
 
     // ----- View Functions
     
-    public fun amount_per_ticket(refund: &mut Refund): u64 {
+    public fun amount_per_ticket(refund: &Refund): u64 {
         refund.amount_per_ticket
     }
 

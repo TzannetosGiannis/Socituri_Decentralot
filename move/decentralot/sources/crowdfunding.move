@@ -1,17 +1,12 @@
 module decentralot::crowdfunding {
     use sui::sui::SUI;
-    use sui::event::{Self};
-    use sui::transfer;
-    use sui::object::{Self, UID, ID};
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::TxContext;
     use sui::balance::{Self, Balance};
     use sui::clock::{Self, Clock};
-    use sui::dynamic_field;
     use sui::coin::{Self, Coin};
-    use std::string::{Self, String, utf8};
+    use std::string::String;
 
-    friend decentralot::campaign;
-    friend decentralot::router;
+    friend decentralot::lottery;
 
     const MAX_FEE_RATE_BPS: u64 = 3_000; // 30%
     const MAX_DEADLINE: u64 = 6 * 30 * 24 * 60 * 60; // 6 months
@@ -23,7 +18,6 @@ module decentralot::crowdfunding {
     const EFundingGoalNotReached: u64 = 4;
     const ENotYetExpired: u64 = 5;
     const EInvalidCFParam: u64 = 6;
-    const ENotBeneficiary: u64 = 7;
     
 
     struct CrowdFunding has store {
@@ -51,12 +45,10 @@ module decentralot::crowdfunding {
         }
     }
 
-    public(friend) fun close_successful(self: &mut CrowdFunding, ctx: &mut TxContext) {
-        assert!(tx_context::sender(ctx) == self.beneficiary, ENotBeneficiary);
+    public(friend) fun close_successful(self: &mut CrowdFunding, ctx: &mut TxContext): Coin<SUI> {
         let raised = balance::value(&self.raised);
         assert!(raised >= self.goal, EFundingGoalNotReached);
-        let coin_raised = coin::take(&mut self.raised, raised, ctx);
-        transfer::public_transfer(coin_raised, self.beneficiary);
+        coin::take(&mut self.raised, raised, ctx)
     }
 
     public(friend) fun close_unsuccessful(self: &mut CrowdFunding, clock: &Clock, ctx: &mut TxContext): Coin<SUI> {
@@ -94,6 +86,10 @@ module decentralot::crowdfunding {
 
     public fun goal_reached(self: &CrowdFunding): bool {
         balance::value(&self.raised) >= self.goal
+    }
+
+    public fun project_url(self: &CrowdFunding): String {
+        self.project_url
     }
 
     public fun need_till_goal(self: &CrowdFunding): u64 {

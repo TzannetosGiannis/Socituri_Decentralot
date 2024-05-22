@@ -10,8 +10,8 @@ module decentralot::config {
     const VERSION: u64 = 1;
 
     // ----- Errors
-    const EFeeAboveMax: u64 = 0;
-    const EPackageVersionMissmatch: u64 = 1;
+    const EFeeAboveMax: u64 = 1;
+    const EPackageVersionMissmatch: u64 = 2;
 
 
     struct AdminCap has key, store {

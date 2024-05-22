@@ -5,17 +5,19 @@ module decentralot::incentive_treasury {
     use sui::object::{Self, UID, ID};
     use sui::tx_context::TxContext;
     use sui::balance::{Self, Balance};
-    use sui::clock::Clock;
     use sui::coin::{Self, Coin};
     use std::option::{Self, Option};
 
     use decentralot::config::{Self, Config, AdminCap };
-    use decentralot::lottery::{Self, Lottery};
+    
+    friend decentralot::lottery;
 
     const DEFAULT_MIN_AMOUNT: u64 = 1_000_000000000; // 1000 SUI
     const MAX_AMOUNT: u64 = 100_000_000000000; // 100_000 SUI
     const MIN_AMOUNT: u64 = 100_000000000; // 100 SUI
 
+
+    // ------ Errors
     const EMinAmountAboveMax: u64 = 1;
     const EMinAmountBelowMin: u64 = 2;
     const ECollectedIncentivesBelowMin: u64 = 3;
@@ -62,22 +64,18 @@ module decentralot::incentive_treasury {
         transfer::share_object(incentive_treasury);
     }
 
-    public fun incentivize(cfg: &Config, incentives: &mut IncentiveTreasury, lottery: &mut Lottery, clock: &Clock, ctx: &mut TxContext){
-        config::assert_version(cfg);
+    public(friend) fun pull_incentives(incentives: &mut IncentiveTreasury, campaign_id: ID, ctx: &mut TxContext) : Coin<SUI> {
         let amount = balance::value(&incentives.bank);
         assert!(amount > incentives.min_amount, ECollectedIncentivesBelowMin);
         assert!(option::is_some(&incentives.campaign_to_incentivize), ENoCampaignToIncentivize);
-
-        let campaign_id = option::borrow(&incentives.campaign_to_incentivize);
-        assert!(lottery::campaign_id(lottery) == *campaign_id, EWrongCampaign);
-
-        let coin = coin::take(&mut incentives.bank, amount, ctx);
-        lottery::incentivize(cfg, lottery, coin, clock, ctx);
+        assert!(*option::borrow(&incentives.campaign_to_incentivize) == campaign_id, EWrongCampaign);
 
         event::emit(IncentivizedCampaign{
-            campaign_id: *campaign_id,
+            campaign_id: campaign_id,
             amount: amount
         });
+        
+        coin::take(&mut incentives.bank, amount, ctx)
 
     }
 
