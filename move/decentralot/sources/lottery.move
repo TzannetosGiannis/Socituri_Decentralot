@@ -17,7 +17,6 @@ module decentralot::lottery {
     friend decentralot::router;
 
     const BPS: u64 = 10000;
-    const VERSION: u64 = 1;
     const TICKET_WINNING_DFIELD_NAME: vector<u8> = b"winning_ticket";
 
     // ----- Errors
