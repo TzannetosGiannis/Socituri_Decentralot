@@ -14,6 +14,7 @@ module decentralot::fee_distribution {
         total_tickets: u64,
         remaining_tickets: u64,
         price_per_ticket: u64,
+        redeem_reward_per_ticket: u64
     }
     
     struct FeeDistributionTicket has key, store {
@@ -24,7 +25,7 @@ module decentralot::fee_distribution {
     }
     
 
-    public(friend) fun new_fee_distribution(total_fees: u64): FeeDistribution {
+    public(friend) fun new_fee_distribution(total_fees: u64, redeem_reward_per_ticket: u64): FeeDistribution {
         // @TODO What if total_tickets == 0?
         let total_tickets = total_fees / FIFTY_SUI;
         if (total_tickets < 50) {
@@ -36,7 +37,8 @@ module decentralot::fee_distribution {
         FeeDistribution {
             total_tickets,
             remaining_tickets: total_tickets,
-            price_per_ticket
+            price_per_ticket,
+            redeem_reward_per_ticket
         }
     }
 
@@ -61,6 +63,22 @@ module decentralot::fee_distribution {
 
     public fun fee_distribution_ticket_details(ticket: &FeeDistributionTicket): (ID, u64, u64) {
         (ticket.campaign, ticket.redeem_round, ticket.amount)
+    }
+
+    public fun fee_distribution_total_tickets(fd: &FeeDistribution): u64 {
+        fd.total_tickets
+    }
+
+    public fun fee_distribution_ticket_price(fd: &FeeDistribution): u64 {
+        fd.price_per_ticket
+    }
+
+    public fun fee_distribution_remaining_tickets(fd: &FeeDistribution): u64 {
+        fd.remaining_tickets
+    }
+
+    public fun fee_distribution_reward_per_ticket(fd: &FeeDistribution): u64 {
+        fd.redeem_reward_per_ticket
     }
 
 

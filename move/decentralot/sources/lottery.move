@@ -37,11 +37,20 @@ module decentralot::lottery {
     const ENoLotteryWinner: u64 = 11;
     const ENotRefundEligible: u64 = 12;
     const ENotBeneficiary : u64 = 13;
+    const EFeeDistributionBuyingPeriodExpired: u64 = 14;
+    const EFeeDistributionNotAvailable: u64 = 15;
+    const EWrongLottery: u64 = 16;
+    const ECampaignMissmatch: u64 = 17;
+    const EFDBuyingPeriodStillActive: u64 = 18;
+    const ENoFDTicketsRemaining: u64 = 19;
 
     struct Campaign has key {
         id: UID,
         total_tickets: u64,
         duration: u64,
+        round: u64,
+        dust: u64,
+        protocol_fees: Balance<SUI>,
         latest_lotery: Option<ID>,
         crowdfunding: Option<CrowdFunding>
     }
@@ -62,11 +71,12 @@ module decentralot::lottery {
         end_date: u64,
         // Lottery's lottery round
         round: u64,
-        protocol_fees: Balance<SUI>,
         fee_distribution: Option<FeeDistribution>,
         winner: Option<u64>
     }
 
+
+    // ------- New lotteries
     public fun new_campaign(_: &AdminCap, cfg: &Config, ticket_price: u64, duration: u64, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
 
@@ -74,8 +84,11 @@ module decentralot::lottery {
             id: object::new(ctx),
             total_tickets: 0,
             duration,
+            round: 0,
+            dust: 0,
+            protocol_fees: balance::zero(),
             latest_lotery: option::none(),
-            crowdfunding: option::none()        
+            crowdfunding: option::none(),
         };
 
         let end_date = clock::timestamp_ms(clock) + duration;
@@ -96,6 +109,9 @@ module decentralot::lottery {
             id: object::new(ctx),
             total_tickets: 0,
             duration,
+            round: 0,
+            dust: 0,
+            protocol_fees: balance::zero(),
             latest_lotery: option::none(),
             crowdfunding: option::some(cf)
         };
@@ -123,23 +139,26 @@ module decentralot::lottery {
         let end_date = now_ms + campaign.duration;
         let new_lottery = new_lottery(lottery.ticket_price, end_date, lottery.round + 1, lottery.campaign, ctx);
         campaign.latest_lotery = option::some(object::id(&new_lottery));
-
+        campaign.round = campaign.round + 1;
         transfer::public_share_object(new_lottery);
     }
 
     public fun end_lottery(_: &AdminCap, cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, winner:u64, clock: &Clock){
         config::assert_version(cfg);
+        
         assert!(!has_active_lottery(campaign), EActiveLotteryExists);
-        assert!(object::id(campaign) == lottery.campaign, EObjectMissmatch);
+        assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
 
         assert!(lottery.end_date < clock::timestamp_ms(clock), ELotteryStillActive);
         assert!(option::is_none(&lottery.winner), ELotteryAlreadyEnded);
 
+
         lottery.winner = option::some(winner);
-        let fd = fee_distribution::new_fee_distribution(balance::value(&lottery.protocol_fees));
-        lottery.fee_distribution = option::some(fd);
         campaign.latest_lotery = option::none();
+        campaign.total_tickets = campaign.total_tickets + lottery.total_tickets;
     }
+
+    // ------ Manage Crowdfunding campaigns
 
     public fun complete_campaign(cfg: &Config, campaign: &mut Campaign, ctx: &mut TxContext){
         config::assert_version(cfg);
@@ -154,7 +173,7 @@ module decentralot::lottery {
         transfer::public_transfer(cf_coin, beneficiary);
     }
 
-    public fun refund_campaign(cfg: &Config, incentives: &mut IncentiveTreasury, campaign: &mut Campaign, clock: &Clock, ctx: &mut TxContext){
+    public fun refund_campaign(cfg: &Config, campaign: &mut Campaign, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
 
         assert!(is_cf_campaign(campaign), ECannotRefundNonCFCampaign);
@@ -168,17 +187,15 @@ module decentralot::lottery {
         let refund_amount_per_ticket = refund_amount / campaign.total_tickets;
         
         // The remaining amount is incentive portion (10%) and dust
-        let incentive_amount = total_raised - (campaign.total_tickets * refund_amount_per_ticket);
-        
-        if (incentive_amount != 0){
-            let incentive_coin = coin::split(&mut raised_coin, incentive_amount, ctx);
-            incentive_treasury::push_incentives(cfg, incentives, incentive_coin);
-        };
+        let dust = total_raised - (campaign.total_tickets * refund_amount_per_ticket);
+        campaign.dust = campaign.dust + dust;
 
         let refund = refund::new_refund(raised_coin, refund_amount_per_ticket);
 
         dynamic_field::add(&mut campaign.id, REFUND_DFIELD_NAME, refund);
     }
+
+    // --------- Buy/Redeem/Refund Tickets
 
     public fun buy_ticket(cfg: &Config, lottery: &mut Lottery, input_coin: Coin<SUI>, amount: u64, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
@@ -202,30 +219,30 @@ module decentralot::lottery {
         };
     }
 
-    public fun claim_prize(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, ticket: LotteryTicket, ctx: &mut TxContext){
+    // If lottery.round < 2, input old_lottery == lottery
+    public fun claim_prize(cfg: &Config, campaign: &mut Campaign, old_lottery: &Lottery, lottery: &mut Lottery, ticket: LotteryTicket, ctx: &mut TxContext){
         config::assert_version(cfg);
 
         assert!(is_lottery_over(lottery), EWinnerNotDecided);
         assert!(balance::value(&lottery.bank) != 0, EPrizeAlreadyClaimed);
 
-        
         let campaign_id = lottery.campaign;
 
-        assert!(object::id(campaign) == campaign_id, EObjectMissmatch);
+        assert!(object::id(campaign) == campaign_id, ECampaignMissmatch);
+        assert!(old_lottery.campaign == campaign_id, ECampaignMissmatch);
+        assert!(old_lottery.round + 2 == lottery.round || lottery.round < 2, EWrongLottery);
 
         let round_number = lottery.round;
         let winner = lottery_winner(lottery);
 
         assert!(lottery_ticket::is_winning_ticket(&ticket, campaign_id, winner, round_number), ENoLotteryWinner);
 
-
-        // let (prize, incentives) = lottery::claim_prize(lottery, protocol_fee, ctx);
-
         let total_amount = balance::value(&lottery.bank);
         
         let protocol_fee_amount = total_amount *  config::protocol_fee_bps(cfg) / BPS_MAX;
         let protocol_balance = balance::split(&mut lottery.bank, protocol_fee_amount);
-        balance::join(&mut lottery.protocol_fees, protocol_balance);
+
+        balance::join(&mut campaign.protocol_fees, protocol_balance);
 
         let prize = coin::take(&mut lottery.bank,  total_amount - protocol_fee_amount, ctx);
         let incentives = balance::value(&lottery.incentives);
@@ -241,6 +258,22 @@ module decentralot::lottery {
         };
 
         lottery_ticket::burn(ticket);
+
+        // Initialize the fee_distribution for the current lottery
+        let dust = protocol_fee_amount;
+        let redeem_reward_per_ticket = 0;
+        if (lottery.round > 2){
+            let old_fd_total_tickets = fee_distribution::fee_distribution_total_tickets(lottery_fee_distribution(old_lottery));
+            redeem_reward_per_ticket = protocol_fee_amount / old_fd_total_tickets;
+
+            // calculate dust
+            dust = protocol_fee_amount - redeem_reward_per_ticket * old_fd_total_tickets;
+        };
+        
+        let fd = fee_distribution::new_fee_distribution(protocol_fee_amount, redeem_reward_per_ticket);
+        lottery.fee_distribution = option::some(fd);
+
+        campaign.dust = campaign.dust + dust;
 
         coin::join(&mut prize, incentives_coin);
         transfer::public_transfer(prize, tx_context::sender(ctx));
@@ -279,7 +312,68 @@ module decentralot::lottery {
     // 1. Buy fee distribution ticket
     // 2. Redeem fee distribution ticket
     // 3. Team can claim remaining fee distribution tickets
+    public fun buy_fee_distribution_token(cfg: &Config, campaign: &Campaign, lottery: &mut Lottery, input_coin: Coin<SUI>, amount: u64,  ctx: &mut TxContext){
+        config::assert_version(cfg);
+        
+        assert!(option::is_some(&lottery.fee_distribution), EFeeDistributionNotAvailable);
+        assert!(object::id(campaign) == lottery.campaign, EObjectMissmatch);
+        assert!(campaign.round == lottery.round + 1, EFeeDistributionBuyingPeriodExpired);
+
+        let fd = option::borrow_mut(&mut lottery.fee_distribution);
+        
+        let ticket = fee_distribution::new_fee_ticket(fd, lottery.campaign, lottery.round + 2, amount, ctx);
     
+        let ticket_price = fee_distribution::fee_distribution_ticket_price(fd);
+        assert!(coin::value(&input_coin) == ticket_price * amount, EIncorrectPaymentAmount);
+
+        transfer::public_transfer(input_coin, @team);
+        transfer::public_transfer(ticket, tx_context::sender(ctx));
+    }
+
+    public fun redeem_fee_distribution_ticket(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, ticket: FeeDistributionTicket, ctx: &mut TxContext){
+        config::assert_version(cfg);
+
+        assert!(is_lottery_over(lottery), ELotteryStillActive);
+        assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
+
+        let (campaign_id, redeem_round, amount) = fee_distribution::redeem_fee_ticket(ticket);
+        
+        assert!(lottery.campaign == campaign_id, ECampaignMissmatch);
+        assert!(lottery.round == redeem_round, EWrongLottery);
+
+        let redeem_price_per_ticket = fee_distribution::fee_distribution_reward_per_ticket(lottery_fee_distribution(lottery));
+
+        let reward = amount * redeem_price_per_ticket;
+
+        let reward_coin = coin::take(&mut campaign.protocol_fees, reward, ctx);
+
+        transfer::public_transfer(reward_coin, tx_context::sender(ctx));
+    }
+
+    public fun claim_unbought_tickets(cfg: &Config, campaign: &Campaign, lottery: &mut Lottery, ctx: &mut TxContext){
+        config::assert_version(cfg);
+        
+        assert!(option::is_some(&lottery.fee_distribution), EFeeDistributionNotAvailable);
+        assert!(object::id(campaign) == lottery.campaign, EObjectMissmatch);
+        assert!(campaign.round > lottery.round + 1, EFDBuyingPeriodStillActive);
+
+        let fd = option::borrow_mut(&mut lottery.fee_distribution);
+        let unbought_tickets = fee_distribution::fee_distribution_remaining_tickets(fd);
+        assert!(unbought_tickets != 0, ENoFDTicketsRemaining);
+        
+        let ticket = fee_distribution::new_fee_ticket(fd, lottery.campaign, lottery.round + 2, unbought_tickets, ctx);
+    
+        transfer::public_transfer(ticket, @team);
+    }
+
+    // ------- Recycle dust as incentives
+    public fun recycle_dust(cfg: &Config, incentives: &mut IncentiveTreasury, campaign: &mut Campaign, ctx: &mut TxContext){
+        config::assert_version(cfg);
+
+        let dust_coin = coin::take(&mut campaign.protocol_fees, campaign.dust, ctx);
+        campaign.dust = 0;
+        incentive_treasury::push_incentives(cfg, incentives, dust_coin);
+    }
 
     // ----- View Functions
     public fun lottery_campaign_id(lottery: &Lottery): ID {
@@ -313,7 +407,10 @@ module decentralot::lottery {
     public fun is_cf_campaign(campaign: &Campaign): bool {
         option::is_some(&campaign.crowdfunding)
     }
-
+    
+    public fun lottery_fee_distribution(lottery: &Lottery): &FeeDistribution {
+        option::borrow(&lottery.fee_distribution)
+    }
     // ----- Private Functions
     fun new_lottery(ticket_price: u64, end_date: u64, round: u64, campaign_id: ID, ctx: &mut TxContext): Lottery {
         Lottery {
@@ -325,7 +422,6 @@ module decentralot::lottery {
             total_tickets: 0,
             end_date,
             round,
-            protocol_fees: balance::zero(),
             fee_distribution: option::none(),
             winner: option::none()
         }
