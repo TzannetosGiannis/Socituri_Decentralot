@@ -2,7 +2,7 @@
 
 [move]
 version = 2
-manifest_digest = "7722CC3C91669428FAD981F24C629271E6C3B299D859FBDDB57F0247BECA5BCE"
+manifest_digest = "54BD893C591DC098FDEE4E894B639C6F42FA8C0A0F408D98BA89415FCC9C4902"
 deps_digest = "F8BBB0CCB2491CA29A3DF03D6F92277A4F3574266507ACD77214D37ECA3F3082"
 dependencies = [
   { name = "Sui" },
@@ -10,11 +10,11 @@ dependencies = [
 
 [[move.package]]
 name = "MoveStdlib"
-source = { local = "/Users/andreas/Documents/socituri/Socituri_Decentralot/move/sui/crates/sui-framework/packages/move-stdlib" }
+source = { local = "/home/andreas/Documents/socituri/Socituri_Decentralot/move/sui/crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
 name = "Sui"
-source = { local = "/Users/andreas/Documents/socituri/Socituri_Decentralot/move/sui/crates/sui-framework/packages/sui-framework" }
+source = { local = "/home/andreas/Documents/socituri/Socituri_Decentralot/move/sui/crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { name = "MoveStdlib" },

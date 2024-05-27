@@ -6,7 +6,7 @@ module decentralot::fee_distribution {
 
     const FIFTY_SUI: u64 = 50_000000000; // 50 SUI
 
-    // ----- Error
+    // ----- Errors
     const ENotEnoughTickets: u64 = 1;
     
     

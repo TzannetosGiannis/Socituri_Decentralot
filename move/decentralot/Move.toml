@@ -3,7 +3,7 @@ name = "decentralot"
 version = "0.1.0"
 
 [dependencies]
-Sui = { local = "/Users/andreas/Documents/socituri/Socituri_Decentralot/move/sui/crates/sui-framework/packages/sui-framework" }
+Sui = { local = "/home/andreas/Documents/socituri/Socituri_Decentralot/move/sui/crates/sui-framework/packages/sui-framework" }
 
 [addresses]
 decentralot = "0x0"
