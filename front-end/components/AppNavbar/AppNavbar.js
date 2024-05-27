@@ -1,11 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { ConnectButton, useCurrentAccount, useCurrentWallet, useSuiClient } from '@mysten/dapp-kit';
+import { MIST_PER_SUI } from '@mysten/sui.js/utils';
 
 const AppNavbar = () => {
+    const currentAccount = useCurrentAccount();
+    const suiClient = useSuiClient();
+    const [balance, setBalance] = useState(0);
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const navOptions = ["Active Lottery", "Crowd Funding", "Buy NFT"];
+
+    useEffect(() => {
+        if (currentAccount?.address) {
+            console.log(currentAccount.address);
+            suiClient.getBalance({
+                owner: currentAccount.address,
+            }).then((resp) => {
+                console.log(resp.totalBalance);
+                const bal = resp.totalBalance / Number(MIST_PER_SUI);
+                setBalance(bal.toFixed(2));
+            })
+        }
+    }, [currentAccount])
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
@@ -20,6 +38,22 @@ const AppNavbar = () => {
     const launchButtonStyle = "flex h-[30px] w-[122px] cursor-pointer items-center justify-center rounded-[8px] bg-indigo-500 lg:h-[40px] lg:w-[163px] mr-4";
     const dropdownStyle = "lg:hidden";
     const dropdownItemStyle = "block px-3 py-2 rounded-md text-white text-base font-medium";
+
+    const renderSuiWalletButton = () => {
+        if (!currentAccount?.address) {
+            return <ConnectButton />
+        }
+        return (
+            <div className='flex items-center gap-x-[12px]'>
+                <ConnectButton />
+                {currentAccount?.address && (
+                    <div className='text-white'>
+                        {balance} SUI
+                    </div>
+                )}
+            </div>
+        )
+    }
 
     return (
         <nav className="bg-gray-900">
@@ -48,9 +82,8 @@ const AppNavbar = () => {
                     </div>
 
                     <div className="flex lg:hidden items-center">
-                        <Link href="/active-lottery" className={launchButtonStyle}>
-                            <span className="text-[14px] text-white lg:text-[18px]">Connect to SUI</span>
-                        </Link>
+                        {renderSuiWalletButton()}
+
                         <button onClick={toggleMenu} className="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium focus:outline-none">
                             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
@@ -59,9 +92,7 @@ const AppNavbar = () => {
                     </div>
 
                     <div className="hidden lg:flex items-center">
-                        <button className={launchButtonStyle}>
-                            <span className="text-[14px] text-white lg:text-[18px]">Connect to SUI</span>
-                        </button>
+                        {renderSuiWalletButton()}
                     </div>
                 </div>
             </div>

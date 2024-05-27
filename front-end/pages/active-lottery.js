@@ -2,13 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/store/authContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTicket, faInfo, faAward } from '@fortawesome/free-solid-svg-icons';
+import { useGetLottery } from '@/hooks/useGetLottery';
+import { usePurchaseTicket } from '@/hooks/usePurchaseTicket';
+
+
+const MOCK_LOTTERY_ID = "0x27ad1582a9d50e3d6d6ca8c07c4a272b68d193da811e3d99903d53a176e96632";
 
 const ActiveLotteryPage = () => {
     const { isLoggedIn } = useAuth();
-    const [countdown, setCountdown] = useState(3600); // Example countdown time in seconds
+    const [countdown, setCountdown] = useState(0); // Example countdown time in seconds
     const [totalPool, setTotalPool] = useState(1000); // Example total prize pool
     const [totalTicketsBought, setTotalTicketsBought] = useState(50); // Example total tickets bought
     const [activeTab, setActiveTab] = useState('countdown'); // State to track active tab
+
+    const {
+        lottery,
+        isLoading,
+        fetchLottery,
+    } = useGetLottery(MOCK_LOTTERY_ID);
+
+    const {
+        handlePurchase,
+        isLoading: isPurchaseLoading,
+    } = usePurchaseTicket(MOCK_LOTTERY_ID);
+
+    useEffect(() => {
+        if (lottery) {
+            setCountdown(lottery.endDate - Date.now());
+        }
+    }, [lottery])
 
     useEffect(() => {
         const countdownInterval = setInterval(() => {
@@ -18,13 +40,37 @@ const ActiveLotteryPage = () => {
         return () => clearInterval(countdownInterval);
     }, []);
 
+
+    const handleClickPurchase = () => {
+        console.log({lottery})
+        handlePurchase({
+            ticketPrice: lottery.ticketPrice,
+            amount: 2,
+            onSuccess: fetchLottery
+        });
+    }
+
     const formatTime = (seconds) => {
+        const formatNum = (num) => String(num).padStart(2, '0');
+
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
         const remainingSeconds = seconds % 60;
 
-        return `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        return `${formatNum(hours)}h:${formatNum(minutes)}m:${formatNum(remainingSeconds)}s`;
     };
+
+    if (isLoading) {
+        return <div className='bg-gray-800 text-white'>
+            Loading...
+        </div>
+    }
+
+    if (!lottery) {
+        return <div className='bg-gray-800 text-white'>
+            Lottery not found.
+        </div>
+    }
 
     return (
         <div className="h-screen flex justify-center items-center bg-gray-800 text-white">
@@ -87,14 +133,14 @@ const ActiveLotteryPage = () => {
                         </div>
                         <div>
                             <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-300">Price Pool</h2>
-                            <div className="text-2xl lg:text-4xl font-bold text-indigo-500">${totalPool}</div>
+                            <div className="text-2xl lg:text-4xl font-bold text-indigo-500">{lottery.bank} SUI</div>
                         </div>
                     </div>
                     
                     )}
                     {isLoggedIn && (
                         <div className="text-center mt-6">
-                            <button className="inline-block bg-indigo-500 hover:bg-indigo-600 text-lg lg:text-xl text-white font-bold py-4 px-12 lg:px-16 rounded-lg shadow-lg transition duration-300">Buy Your Ticket Now</button>
+                            <button onClick={handleClickPurchase} className="inline-block bg-indigo-500 hover:bg-indigo-600 text-lg lg:text-xl text-white font-bold py-4 px-12 lg:px-16 rounded-lg shadow-lg transition duration-300">Buy Your Ticket Now</button>
                         </div>
                     )}
                 </div>
