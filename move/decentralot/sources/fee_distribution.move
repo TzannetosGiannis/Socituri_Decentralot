@@ -255,7 +255,6 @@ module decentralot::fee_distribution {
     }
 
     // ----- Internal functions
-
     fun new_epoch_cfg(epoch_fees: u64, redeem_price_per_ticket: u64): EpochConfig {
         let total_tickets = epoch_fees / FIFTY_SUI;
         if (total_tickets < 50) {

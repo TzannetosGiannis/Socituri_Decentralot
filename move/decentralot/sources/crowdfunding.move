@@ -9,7 +9,7 @@ module decentralot::crowdfunding {
     friend decentralot::lottery;
 
     const MAX_FEE_RATE_BPS: u64 = 3_000; // 30%
-    const MAX_DEADLINE: u64 = 6 * 30 * 24 * 60 * 60; // 6 months
+    const MAX_DEADLINE: u64 = 6 * 30 * 24 * 60 * 60 * 1000; // 6 months in ms
 
     // ---- Errors
     const EFeeRateAboveMax: u64 = 1;
@@ -29,7 +29,7 @@ module decentralot::crowdfunding {
         raised: Balance<SUI>
     }
 
-    public(friend) fun new_crowdfunding(goal: u64, deadline: u64, beneficiary: address, fee_rate_bps: u64, project_url: String): CrowdFunding {
+    public(friend) fun new_crowdfunding(goal: u64, deadline: u64, beneficiary: address, fee_rate_bps: u64, project_url: String, clock: &Clock): CrowdFunding {
         assert!(goal > 0, EInvalidCFParam);
         assert!(deadline > 0, EInvalidCFParam);
         assert!(fee_rate_bps > 0, EInvalidCFParam);
@@ -37,7 +37,7 @@ module decentralot::crowdfunding {
         assert!(fee_rate_bps <= MAX_FEE_RATE_BPS, EFeeRateAboveMax);
         CrowdFunding {
             goal,
-            deadline,
+            deadline: clock::timestamp_ms(clock) + deadline,
             beneficiary,
             fee_rate_bps,
             project_url,

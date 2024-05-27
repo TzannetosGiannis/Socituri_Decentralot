@@ -44,8 +44,6 @@ module decentralot::lottery {
         total_tickets: u64,
         duration: u64,
         round: u64,
-        dust: u64,
-        protocol_fees: Balance<SUI>,
         latest_lotery: Option<ID>,
         crowdfunding: Option<CrowdFunding>
     }
@@ -123,16 +121,6 @@ module decentralot::lottery {
         prize: u64,
     }
 
-    struct DustAccumuldated has copy, drop {
-        campaign: ID,
-        dust: u64,
-    }
-
-    struct DustRecycled has copy, drop {
-        campaign: ID,
-        amount: u64,
-    }
-
     struct IncentivesAdded has copy, drop {
         campaign: ID,
         lottery: ID,
@@ -149,8 +137,6 @@ module decentralot::lottery {
             total_tickets: 0,
             duration,
             round: 0,
-            dust: 0,
-            protocol_fees: balance::zero(),
             latest_lotery: option::none(),
             crowdfunding: option::none(),
         };
@@ -183,18 +169,16 @@ module decentralot::lottery {
         transfer::public_share_object(lottery);
     }
 
-    public fun new_crowdfunding_campaing(_: &AdminCap, cfg: &Config, ticket_price: u64, duration: u64,  goal:u64 , deadline:u64 , beneficiary: address, fee_rate_bps:u64, project_url: String, clock: &Clock, ctx: &mut TxContext){
+    public fun new_crowdfunding_campaing(_: &AdminCap, cfg: &Config, ticket_price: u64, duration: u64, goal:u64, deadline:u64, beneficiary: address, fee_rate_bps: u64, project_url: String, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
 
-        let cf = crowdfunding::new_crowdfunding(goal, deadline, beneficiary, fee_rate_bps, project_url);
+        let cf = crowdfunding::new_crowdfunding(goal, deadline, beneficiary, fee_rate_bps, project_url, clock);
         
         let campaign = Campaign{
             id: object::new(ctx),
             total_tickets: 0,
             duration,
             round: 0,
-            dust: 0,
-            protocol_fees: balance::zero(),
             latest_lotery: option::none(),
             crowdfunding: option::some(cf)
         };
@@ -232,7 +216,7 @@ module decentralot::lottery {
 
         assert!(!has_active_lottery(campaign), EActiveLotteryExists);
         assert!(object::id(campaign) == lottery.campaign, EObjectMissmatch);
-        assert!(*option::borrow(&campaign.latest_lotery) == object::id(lottery), EObjectMissmatch);
+        // assert!(*option::borrow(&campaign.latest_lotery) == object::id(lottery), EObjectMissmatch);
         let now_ms = clock::timestamp_ms(clock);
         if (is_cf_campaign(campaign)){
             assert!(crowdfunding::deadline(option::borrow(&campaign.crowdfunding)) > now_ms, ECrowdfundingDeadlinePassed);
@@ -255,7 +239,7 @@ module decentralot::lottery {
         transfer::public_share_object(new_lottery);
     }
 
-    public fun end_lottery(_: &AdminCap, cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, winner:u64, fd: &mut FeeDistribution, clock: &Clock, ctx: &mut TxContext){
+    public fun end_lottery(_: &AdminCap, cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, winner: u64, fd: &mut FeeDistribution, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
         
         assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
@@ -311,7 +295,7 @@ module decentralot::lottery {
         });
     }
 
-    public fun refund_campaign(cfg: &Config, campaign: &mut Campaign, clock: &Clock, ctx: &mut TxContext){
+    public fun refund_campaign(cfg: &Config, campaign: &mut Campaign, incentives: &mut IncentiveTreasury, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
 
         assert!(is_cf_campaign(campaign), ECannotRefundNonCFCampaign);
@@ -325,8 +309,9 @@ module decentralot::lottery {
         let refund_amount_per_ticket = refund_amount / campaign.total_tickets;
         
         // The remaining amount is incentive portion (10%) and dust
-        let dust = total_raised - (campaign.total_tickets * refund_amount_per_ticket);
-        add_dust(campaign, dust);
+        let incentives_amount = total_raised - (campaign.total_tickets * refund_amount_per_ticket);
+        let incentives_coin = coin::split(&mut raised_coin, incentives_amount, ctx);
+        incentive_treasury::push_incentives(cfg, incentives, incentives_coin);
 
         let refund = refund::new_refund(raised_coin, refund_amount_per_ticket);
 
@@ -335,7 +320,7 @@ module decentralot::lottery {
         event::emit(CampaignRefunded{
             id: object::id(campaign),
             refund_amount: refund_amount,
-            incentives_amount: dust,
+            incentives_amount,
             refund_per_ticket: refund_amount_per_ticket,
         });
     }
@@ -449,20 +434,6 @@ module decentralot::lottery {
         });
     }
 
-    // ------- Recycle dust as incentives
-    public fun recycle_dust(cfg: &Config, incentives: &mut IncentiveTreasury, campaign: &mut Campaign, ctx: &mut TxContext){
-        config::assert_version(cfg);
-
-        let dust_coin = coin::take(&mut campaign.protocol_fees, campaign.dust, ctx);
-        let dust_collected = campaign.dust;
-        campaign.dust = 0;
-        incentive_treasury::push_incentives(cfg, incentives, dust_coin);
-        event::emit(DustRecycled{
-            campaign: object::id(campaign),
-            amount: dust_collected
-        });
-    }
-
     // ----- View Functions
     public fun lottery_campaign_id(lottery: &Lottery): ID {
         lottery.campaign
@@ -512,13 +483,4 @@ module decentralot::lottery {
             winner: option::none()
         }
     }
-
-    fun add_dust(campaign: &mut Campaign, dust: u64){
-        campaign.dust = campaign.dust + dust;
-        event::emit(DustAccumuldated{
-            campaign: object::id(campaign),
-            dust
-        });
-    }
-
 }
