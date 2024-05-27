@@ -321,7 +321,7 @@ module decentralot::lottery {
         let total_raised = coin::value(&raised_coin);
 
         // 90% of the raised funds are refunded to the backers, split equally
-        let refund_amount = 9_000 * total_raised / 10_000;
+        let refund_amount = config::refund_pct_bps(cfg) * total_raised / BPS_MAX;
         let refund_amount_per_ticket = refund_amount / campaign.total_tickets;
         
         // The remaining amount is incentive portion (10%) and dust

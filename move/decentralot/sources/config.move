@@ -1,17 +1,21 @@
 module decentralot::config {
-    use sui::object::{Self, UID, ID};
+    use sui::object::{Self, UID};
     use sui::tx_context::{Self, TxContext};
     use sui::event::emit;
     use sui::transfer;
 
-    const MAX_FEE_BPS: u64 = 300; // 30%
-    const INIT_FEE_BPS: u64 = 200; // 20%
+    const MAX_FEE_BPS: u64 = 300; // 3%
+    const INIT_FEE_BPS: u64 = 200; // 2%
+
+    const MAX_REFUND_PCT: u64 = 9000; // 90%
+    const INIT_REFUND_PCT: u64 = 7000; // 70%
 
     const VERSION: u64 = 1;
 
     // ----- Errors
     const EFeeAboveMax: u64 = 1;
-    const EPackageVersionMissmatch: u64 = 2;
+    const ERefundPctAboveMax: u64 = 2;
+    const EPackageVersionMissmatch: u64 = 3;
 
 
     struct AdminCap has key, store {
@@ -21,18 +25,19 @@ module decentralot::config {
     struct Config has key, store {
         id: UID,
         protocol_fee_bps: u64,
+        refund_pct_bps: u64,
         package_version: u64,
     }
 
     // ----- Events
-    struct Init has copy, drop {
-        admin_cap: ID,
-        config: ID,
-    }
-
     struct UpdateProtocolFeeRate has copy, drop {
         old_fee_bps: u64,
         new_fee_bps: u64,
+    }
+
+    struct UpdateProtocolRefundPercentage has copy, drop {
+        old_pct_bps: u64,
+        new_pct_bps: u64,
     }
 
     struct UpdatePackageVersion has copy, drop {
@@ -43,24 +48,18 @@ module decentralot::config {
         let config = Config {
             id: object::new(ctx),
             protocol_fee_bps: INIT_FEE_BPS,
+            refund_pct_bps: INIT_REFUND_PCT,
             package_version: VERSION
         };
-        let config_id = object::id(&config);
 
         let admin_cap = AdminCap {
             id: object::new(ctx)
         };
 
-        let admin_cap_id = object::id(&admin_cap);
 
     
         transfer::transfer(admin_cap, tx_context::sender(ctx));
         transfer::share_object(config);
-
-        emit(Init {
-            admin_cap: admin_cap_id,
-            config: config_id,
-        });
     }
 
     public fun set_protocol_fee_bps(_: &AdminCap, config: &mut Config, new_fee_bps: u64) {
@@ -74,10 +73,21 @@ module decentralot::config {
         })
     }
 
-    public fun update_package_version(_: &AdminCap, config: &mut Config) {
-        config.package_version = VERSION;
+    public fun set_protocol_refund_bps(_: &AdminCap, config: &mut Config, new_refund_pct_bps: u64) {
+        assert!(new_refund_pct_bps <= MAX_REFUND_PCT, ERefundPctAboveMax);
+        let old_refund_pct_bps = config.refund_pct_bps;
+        config.refund_pct_bps = new_refund_pct_bps;
+
+        emit(UpdateProtocolRefundPercentage {
+            old_pct_bps: old_refund_pct_bps,
+            new_pct_bps: new_refund_pct_bps,
+        })
+    }
+
+    public fun update_package_version(_: &AdminCap, config: &mut Config, version: u64) {
+        config.package_version = version;
         emit(UpdatePackageVersion {
-            new_version: VERSION,
+            new_version: version,
         });
     }
 
@@ -88,6 +98,10 @@ module decentralot::config {
     // ----- View functions
     public fun protocol_fee_bps(config: &Config): u64 {
         config.protocol_fee_bps
+    }
+
+    public fun refund_pct_bps(config: &Config): u64 {
+        config.refund_pct_bps
     }
 
     public fun max_protocol_fee_bps(): u64 {
