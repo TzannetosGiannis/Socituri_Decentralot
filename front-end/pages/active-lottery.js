@@ -4,27 +4,29 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTicket, faInfo, faAward } from '@fortawesome/free-solid-svg-icons';
 import { useGetLottery } from '@/hooks/useGetLottery';
 import { usePurchaseTicket } from '@/hooks/usePurchaseTicket';
+import { useGetMyInformationForLottery } from '@/hooks/useGetMyInformationForLottery';
+import { useGetConfig } from '@/hooks/useGetConfig';
 
-
-const MOCK_LOTTERY_ID = "0x27ad1582a9d50e3d6d6ca8c07c4a272b68d193da811e3d99903d53a176e96632";
 
 const ActiveLotteryPage = () => {
     const { isLoggedIn } = useAuth();
     const [countdown, setCountdown] = useState(0); // Example countdown time in seconds
-    const [totalPool, setTotalPool] = useState(1000); // Example total prize pool
-    const [totalTicketsBought, setTotalTicketsBought] = useState(50); // Example total tickets bought
     const [activeTab, setActiveTab] = useState('countdown'); // State to track active tab
+
+    const config = useGetConfig();
+    const { ownedTickets } = useGetMyInformationForLottery();
+    const [amount, setAmount] = useState(0);
 
     const {
         lottery,
         isLoading,
         fetchLottery,
-    } = useGetLottery(MOCK_LOTTERY_ID);
+    } = useGetLottery(process.env.NEXT_PUBLIC_LOTTERY_ID);
 
     const {
         handlePurchase,
         isLoading: isPurchaseLoading,
-    } = usePurchaseTicket(MOCK_LOTTERY_ID);
+    } = usePurchaseTicket(process.env.NEXT_PUBLIC_LOTTERY_ID);
 
     useEffect(() => {
         if (lottery) {
@@ -43,10 +45,14 @@ const ActiveLotteryPage = () => {
 
     const handleClickPurchase = () => {
         console.log({lottery})
+        if (!amount || amount < 0) return;
         handlePurchase({
             ticketPrice: lottery.ticketPrice,
-            amount: 2,
-            onSuccess: fetchLottery
+            amount,
+            onSuccess: () => {
+                fetchLottery();
+                setAmount(0);
+            }
         });
     }
 
@@ -71,6 +77,8 @@ const ActiveLotteryPage = () => {
             Lottery not found.
         </div>
     }
+
+    console.log({ bank: lottery.bank, bps: config.bps })
 
     return (
         <div className="h-screen flex justify-center items-center bg-gray-800 text-white">
@@ -114,13 +122,16 @@ const ActiveLotteryPage = () => {
                             <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-300">Tickets Owned</h2>
                             <div className="text-lg lg:text-xl font-bold text-indigo-500">
                                 <FontAwesomeIcon icon={faTicket} className="w-5 h-5 mr-2" />
-                                {totalTicketsBought}
+                                {ownedTickets.length}
                             </div>
                         </div>
                         <div>
                             <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-300">Pool Percentage</h2>
                             <div className="text-lg lg:text-xl font-bold text-indigo-500">
-                                {(totalTicketsBought / totalPool * 100).toFixed(2)}%
+                                {lottery.bank === 0
+                                    ? 0
+                                    : ((ownedTickets.length * lottery.ticketPrice) / lottery.bank * 100).toFixed(2)
+                                }%
                             </div>
                         </div>
                     </div>
@@ -133,14 +144,15 @@ const ActiveLotteryPage = () => {
                         </div>
                         <div>
                             <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-300">Price Pool</h2>
-                            <div className="text-2xl lg:text-4xl font-bold text-indigo-500">{lottery.bank} SUI</div>
+                            <div className="text-2xl lg:text-4xl font-bold text-indigo-500">{(Number(lottery.bank) * (1 - (Number(config.bps) / 10_000))).toFixed(2)} SUI</div>
                         </div>
                     </div>
                     
                     )}
                     {isLoggedIn && (
-                        <div className="text-center mt-6">
-                            <button onClick={handleClickPurchase} className="inline-block bg-indigo-500 hover:bg-indigo-600 text-lg lg:text-xl text-white font-bold py-4 px-12 lg:px-16 rounded-lg shadow-lg transition duration-300">Buy Your Ticket Now</button>
+                        <div className="flex items-center gap-x-[12px] text-center mt-6">
+                            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="bg-gray-800 text-white text-center w-20 h-14 rounded-lg border border-gray-300 dark:border-gray-700" />
+                            <button onClick={handleClickPurchase} className="h-14 inline-block bg-indigo-500 hover:bg-indigo-600 text-lg lg:text-xl text-white font-bold py-4 px-12 lg:px-16 rounded-lg shadow-lg transition duration-300">Buy Your Tickets Now</button>
                         </div>
                     )}
                 </div>
