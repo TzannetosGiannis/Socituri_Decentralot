@@ -1,7 +1,7 @@
 #[allow(lint(self_transfer))]
 module decentralot::fee_distribution {
     use sui::sui::SUI;
-    use sui::object::{Self, UID};
+    use sui::object::{Self, UID, ID};
     use sui::tx_context::{Self, TxContext};
     use sui::balance::{Self, Balance};
     use sui::table::{Self, Table};
@@ -60,7 +60,30 @@ module decentralot::fee_distribution {
         redeem_price_per_ticket: u64
     }
 
-    struct DustAccumuldated has copy, drop {
+    struct FeesAdded has copy, drop {
+        epoch: u64,
+        fees_added: u64
+    }
+
+    struct TicketsBought has copy, drop {
+        id: ID,
+        epoch: u64,
+        redeem_epoch: u64,
+        amount: u64,
+    }
+
+    struct TicketRedeemed has copy, drop {
+        id: ID,
+        reward: u64
+    }
+
+    struct UnboughtTicketsClaimed has copy, drop {
+        id: ID,
+        amount: u64,
+        epoch: u64,
+    }
+
+    struct DustAccumulated has copy, drop {
         dust_amount: u64,
     }
 
@@ -134,6 +157,11 @@ module decentralot::fee_distribution {
         let amount = coin::value(&fee_coin);
         fd.current_epoch_fees = fd.current_epoch_fees + amount;
         balance::join(&mut fd.bank, coin::into_balance(fee_coin));
+        
+        event::emit(FeesAdded{
+            epoch: current_epoch(clock),
+            fees_added: amount
+        });
     }
 
     public fun buy_ticket(cfg: &Config, fd: &mut FeeDistribution, amount: u64, input_coin: Coin<SUI>, clock: &Clock, ctx: &mut TxContext){
@@ -150,15 +178,25 @@ module decentralot::fee_distribution {
         assert!(coin::value(&input_coin) == price, EInsufficientPayment);
 
         let ticket = new_fd_ticket(epoch_cfg, curr_epoch + 1, amount, ctx);
+        let ticket_id = object::id(&ticket);
 
         transfer::public_transfer(input_coin, @team);
         transfer::transfer(ticket, tx_context::sender(ctx));
+
+        event::emit(TicketsBought{
+            id: ticket_id,
+            epoch: prev_epoch,
+            redeem_epoch: curr_epoch + 1,
+            amount
+        });
     }
 
     public fun redeem_ticket(cfg: &Config, fd: &mut FeeDistribution, ticket: FeeDistributionTicket, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
         advance_epoch(cfg, fd, clock);
-        
+
+        let redeemed_ticket_id = object::id(&ticket);
+
         let (redeem_epoch, amount) = redeem_fee_ticket(ticket);
         assert!(table::contains(&fd.config_per_epoch, redeem_epoch), EEpochDoesNotExist);
         
@@ -167,6 +205,11 @@ module decentralot::fee_distribution {
         let reward = amount * epoch_cfg.redeem_price_per_ticket;
         let reward_coin = coin::take(&mut fd.bank, reward, ctx);
         transfer::public_transfer(reward_coin, tx_context::sender(ctx));
+
+        event::emit(TicketRedeemed{
+            id:redeemed_ticket_id,
+            reward
+        });
     }
 
     // Admin can claim any remaining/unbought tickets for past epochs
@@ -181,8 +224,15 @@ module decentralot::fee_distribution {
         let remaining_tickets = epoch_cfg.remaining_tickets;
         assert!(remaining_tickets != 0, ENoTicketsToClaim);
         let ticket = new_fd_ticket(epoch_cfg, epoch + 2, remaining_tickets, ctx);
+        let ticket_id = object::id(&ticket);
 
         transfer::transfer(ticket, @team);
+
+        event::emit(UnboughtTicketsClaimed{
+            id: ticket_id,
+            amount: remaining_tickets,
+            epoch
+        });
     }
 
     public fun recycle_dust(cfg: &Config, incentives: &mut IncentiveTreasury, fd: &mut FeeDistribution, clock: &Clock, ctx: &mut TxContext){
@@ -241,7 +291,7 @@ module decentralot::fee_distribution {
 
     fun add_dust(fd: &mut FeeDistribution, dust: u64){
         fd.dust = fd.dust + dust;
-        event::emit(DustAccumuldated {
+        event::emit(DustAccumulated {
             dust_amount: dust
         });
     }
