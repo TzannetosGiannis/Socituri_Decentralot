@@ -2,7 +2,7 @@
 module decentralot::lottery {
 
     use sui::sui::SUI;
-    // use sui::event;
+    use sui::event;
     use sui::transfer;
     use sui::object::{Self, UID, ID};
     use sui::tx_context::{Self, TxContext};
@@ -11,7 +11,7 @@ module decentralot::lottery {
     use sui::dynamic_field;
     use sui::coin::{Self, Coin};
     use std::option::{Self, Option};
-    use std::string::String;
+    use std::string::{String, utf8};
 
     use decentralot::crowdfunding::{Self, CrowdFunding};
     use decentralot::refund;
@@ -75,6 +75,45 @@ module decentralot::lottery {
         winner: Option<u64>
     }
 
+    // ----- Events
+
+    // If the campaign is not Crowdfunding, last 4 fields will be empty.
+    struct NewCampaign has copy, drop {
+        id: ID,
+        duration: u64,
+        ticket_price: u64,
+        goal: u64,
+        deadline: u64,
+        keep_rate_bps: u64,
+        project_url: String,
+    }
+
+    struct NewLottery has copy, drop {
+        id: ID,
+        campaign: ID,
+        ticket_price: u64,
+        end_date: u64,
+        round: u64,
+    }
+
+    struct LotteryEnded has copy, drop {
+        id: ID,
+        winner: u64,
+    }
+
+    struct CampaignCompleted has copy, drop {
+        id: ID,
+        raised: u64
+    }
+
+    struct TicketBought has copy, drop {
+        lottery: ID,
+        ticket_id: ID,
+        campaign: ID,
+        round: u64,
+        number: u64
+    }
+
 
     // ------- New lotteries
     public fun new_campaign(_: &AdminCap, cfg: &Config, ticket_price: u64, duration: u64, clock: &Clock, ctx: &mut TxContext){
@@ -92,9 +131,28 @@ module decentralot::lottery {
         };
 
         let end_date = clock::timestamp_ms(clock) + duration;
+        let campaign_id = object::id(&campaign);
 
-        let lottery = new_lottery(ticket_price, end_date, 0, object::id(&campaign), ctx);
+        let lottery = new_lottery(ticket_price, end_date, 0, campaign_id, ctx);
         campaign.latest_lotery = option::some(object::id(&lottery));
+        
+        event::emit(NewCampaign{
+            id: campaign_id,
+            duration,
+            ticket_price,
+            goal: 0,
+            deadline: 0,
+            keep_rate_bps: 0,
+            project_url: utf8(b""),
+        });
+
+        event::emit(NewLottery{
+            id: object::id(&lottery),
+            campaign: campaign_id,
+            ticket_price,
+            end_date,
+            round: 0
+        });
 
         transfer::share_object(campaign);
         transfer::public_share_object(lottery);
@@ -117,9 +175,28 @@ module decentralot::lottery {
         };
 
         let end_date = clock::timestamp_ms(clock) + duration;
+        let campaign_id = object::id(&campaign);
 
-        let lottery = new_lottery(ticket_price, end_date, 0, object::id(&campaign), ctx);
+        let lottery = new_lottery(ticket_price, end_date, 0, campaign_id, ctx);
         campaign.latest_lotery = option::some(object::id(&lottery));
+
+        event::emit(NewCampaign{
+            id: campaign_id,
+            duration,
+            ticket_price,
+            goal,
+            deadline,
+            keep_rate_bps: fee_rate_bps,
+            project_url,
+        });
+
+        event::emit(NewLottery{
+            id: object::id(&lottery),
+            campaign: campaign_id,
+            ticket_price,
+            end_date,
+            round: 0
+        });
 
         transfer::share_object(campaign);
         transfer::public_share_object(lottery);
@@ -140,6 +217,16 @@ module decentralot::lottery {
         let new_lottery = new_lottery(lottery.ticket_price, end_date, lottery.round + 1, lottery.campaign, ctx);
         campaign.latest_lotery = option::some(object::id(&new_lottery));
         campaign.round = campaign.round + 1;
+
+        
+        event::emit(NewLottery{
+            id: object::id(&new_lottery),
+            campaign: lottery.campaign,
+            ticket_price: lottery.ticket_price,
+            end_date,
+            round: campaign.round
+        });
+        
         transfer::public_share_object(new_lottery);
     }
 
@@ -156,6 +243,11 @@ module decentralot::lottery {
         lottery.winner = option::some(winner);
         campaign.latest_lotery = option::none();
         campaign.total_tickets = campaign.total_tickets + lottery.total_tickets;
+
+        event::emit(LotteryEnded{
+            id: object::id(lottery),
+            winner
+        })
     }
 
     // ------ Manage Crowdfunding campaigns
@@ -170,7 +262,13 @@ module decentralot::lottery {
         assert!(!has_active_lottery(campaign), EActiveLotteryExists);
         
         let cf_coin = crowdfunding::close_successful(option::borrow_mut(&mut campaign.crowdfunding), ctx);
+        let raised = coin::value(&cf_coin);
         transfer::public_transfer(cf_coin, beneficiary);
+
+        event::emit(CampaignCompleted{
+            id: object::id(campaign),
+            raised
+        });
     }
 
     public fun refund_campaign(cfg: &Config, campaign: &mut Campaign, clock: &Clock, ctx: &mut TxContext){
@@ -214,6 +312,13 @@ module decentralot::lottery {
         
         while (start < lottery.total_tickets){
             let ticket = lottery_ticket::new_ticket(campaign, start, round_number, ctx);
+            event::emit(TicketBought{
+                lottery: object::id(lottery),
+                campaign,
+                ticket_id: object::id(&ticket),
+                round: round_number,
+                number: start,
+            });
             transfer::public_transfer(ticket, tx_context::sender(ctx));
             start = start + 1;
         };
