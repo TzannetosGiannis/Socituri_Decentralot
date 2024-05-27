@@ -1,86 +1,250 @@
+#[allow(lint(self_transfer))]
 module decentralot::fee_distribution {
-    use sui::object::{Self, UID, ID};
-    use sui::tx_context::TxContext;
+    use sui::sui::SUI;
+    use sui::object::{Self, UID};
+    use sui::tx_context::{Self, TxContext};
+    use sui::balance::{Self, Balance};
+    use sui::table::{Self, Table};
+    use sui::clock::{Self, Clock};
+    use sui::coin::{Self, Coin};
+    use sui::transfer;
+    use sui::event;
+    
+    use decentralot::config::{Self, Config};
+    use decentralot::incentive_treasury::{Self, IncentiveTreasury};
 
-    friend decentralot::lottery;
 
     const FIFTY_SUI: u64 = 50_000000000; // 50 SUI
+    const ONE_WEEK: u64 = 604_800_000; // 1 week in ms
 
     // ----- Errors
     const ENotEnoughTickets: u64 = 1;
+    const EInsufficientPayment: u64 = 2;
+    const ECannotBuyTicket: u64 = 3;
+    const ECannotClaimTicketsForEpoch: u64 = 4;
+    const ENoTicketsToClaim: u64 = 5;
+    const EEpochDoesNotExist: u64 = 6;
     
     
-    struct FeeDistribution has store, drop {
+    struct FeeDistribution has key, store {
+        id: UID,
+        bank: Balance<SUI>,
+        current_epoch_fees: u64,
+        last_recorded_epoch: u64,
+        config_per_epoch: Table<u64, EpochConfig>,
+        dust: u64
+    }
+
+    struct EpochConfig has store {
+        // Total fee distribution tickets for current epoch
         total_tickets: u64,
+        // Unbought fee distribution tickets for current epoch
         remaining_tickets: u64,
+        // Price per ticket for current epoch
         price_per_ticket: u64,
-        redeem_reward_per_ticket: u64
+        // Price per ticket for tickets to be redeemed this epoch
+        redeem_price_per_ticket: u64
     }
     
     struct FeeDistributionTicket has key, store {
         id: UID,
-        campaign: ID,
-        redeem_round: u64,
+        redeem_epoch: u64,
         amount: u64
     }
-    
 
-    public(friend) fun new_fee_distribution(total_fees: u64, redeem_reward_per_ticket: u64): FeeDistribution {
-        // @TODO What if total_tickets == 0?
-        let total_tickets = total_fees / FIFTY_SUI;
+    // ------- Events
+    struct AdvancedEpoch has copy, drop {
+        epoch: u64,
+        last_epoch_fees: u64,
+        last_epoch_ticket_price: u64,
+        redeem_price_per_ticket: u64
+    }
+
+    struct DustAccumuldated has copy, drop {
+        dust_amount: u64,
+    }
+
+    struct DustRecycled has copy, drop {
+        amount: u64
+    }
+
+    fun init(ctx: &mut TxContext) {
+        let fd = FeeDistribution {
+            id: object::new(ctx),
+            bank: balance::zero(),
+            current_epoch_fees: 0,
+            last_recorded_epoch: 0,
+            config_per_epoch: table::new(ctx), 
+            dust: 0
+        };
+
+        transfer::share_object(fd);
+    }
+
+    public fun advance_epoch(cfg: &Config, fd: &mut FeeDistribution, clock: &Clock){
+        config::assert_version(cfg);
+
+        let curr_epoch = current_epoch(clock);
+        if (curr_epoch == fd.last_recorded_epoch) {
+            return
+        };
+        
+        let prev_epoch = curr_epoch - 1;
+        let last_epoch_fees = fd.current_epoch_fees; 
+        
+        // If the config for epoch `prev_epoch - 2` does note exist, then the prev epoch's fees cannot be distributed.
+        // Thus, the whole amount is recycled as `dust` and epoch's redeem price is 0.
+        let dust = last_epoch_fees;
+        let redeem_price_per_ticket = 0;
+
+        if (table::contains(&fd.config_per_epoch, prev_epoch - 2)) {
+            let old_epoch_cfg = table::borrow(&fd.config_per_epoch, prev_epoch - 2);
+            let old_total_tickets = old_epoch_cfg.total_tickets;
+
+            // The redeem_price_per_ticket for previous epoch will be `current_epoch_fees / old_total_tickets`
+            redeem_price_per_ticket = last_epoch_fees / old_total_tickets;
+
+            dust = last_epoch_fees - old_total_tickets * redeem_price_per_ticket;
+        };
+
+        add_dust(fd, dust);
+
+        let epoch_cfg = new_epoch_cfg(fd.current_epoch_fees, redeem_price_per_ticket);
+        let price_per_ticket = epoch_cfg.price_per_ticket;
+
+
+        table::add(&mut fd.config_per_epoch, prev_epoch, epoch_cfg);
+        
+        fd.current_epoch_fees = 0;
+        fd.last_recorded_epoch = curr_epoch;
+
+        
+        event::emit(AdvancedEpoch{
+            epoch: curr_epoch,
+            last_epoch_fees,
+            last_epoch_ticket_price: price_per_ticket,
+            redeem_price_per_ticket
+        }); 
+    }
+
+    public fun add_fees(cfg: &Config, fd: &mut FeeDistribution, fee_coin: Coin<SUI>, clock: &Clock){
+        config::assert_version(cfg);
+        advance_epoch(cfg, fd, clock);
+        
+        let amount = coin::value(&fee_coin);
+        fd.current_epoch_fees = fd.current_epoch_fees + amount;
+        balance::join(&mut fd.bank, coin::into_balance(fee_coin));
+    }
+
+    public fun buy_ticket(cfg: &Config, fd: &mut FeeDistribution, amount: u64, input_coin: Coin<SUI>, clock: &Clock, ctx: &mut TxContext){
+        config::assert_version(cfg);
+        advance_epoch(cfg, fd, clock);
+
+        // During epoch N, one buys tickets on epoch N-1 to be redeemed on epoch N+1
+        let curr_epoch = current_epoch(clock);
+        let prev_epoch = curr_epoch - 1;
+        assert!(table::contains(&fd.config_per_epoch, prev_epoch), ECannotBuyTicket);
+        let epoch_cfg = table::borrow_mut(&mut fd.config_per_epoch, prev_epoch);
+
+        let price = epoch_cfg.price_per_ticket * amount;
+        assert!(coin::value(&input_coin) == price, EInsufficientPayment);
+
+        let ticket = new_fd_ticket(epoch_cfg, curr_epoch + 1, amount, ctx);
+
+        transfer::public_transfer(input_coin, @team);
+        transfer::transfer(ticket, tx_context::sender(ctx));
+    }
+
+    public fun redeem_ticket(cfg: &Config, fd: &mut FeeDistribution, ticket: FeeDistributionTicket, clock: &Clock, ctx: &mut TxContext){
+        config::assert_version(cfg);
+        advance_epoch(cfg, fd, clock);
+        
+        let (redeem_epoch, amount) = redeem_fee_ticket(ticket);
+        assert!(table::contains(&fd.config_per_epoch, redeem_epoch), EEpochDoesNotExist);
+        
+        let epoch_cfg = table::borrow(&fd.config_per_epoch, redeem_epoch);
+    
+        let reward = amount * epoch_cfg.redeem_price_per_ticket;
+        let reward_coin = coin::take(&mut fd.bank, reward, ctx);
+        transfer::public_transfer(reward_coin, tx_context::sender(ctx));
+    }
+
+    // Admin can claim any remaining/unbought tickets for past epochs
+    public fun claim_remaining_tickets_for_epoch(cfg: &Config, fd: &mut FeeDistribution, epoch: u64, clock: &Clock, ctx: &mut TxContext){
+        config::assert_version(cfg);
+        advance_epoch(cfg, fd, clock);
+        
+        let curr_epoch = current_epoch(clock);
+        assert!(epoch < curr_epoch - 1, ECannotClaimTicketsForEpoch);
+
+        let epoch_cfg = table::borrow_mut(&mut fd.config_per_epoch, epoch);
+        let remaining_tickets = epoch_cfg.remaining_tickets;
+        assert!(remaining_tickets != 0, ENoTicketsToClaim);
+        let ticket = new_fd_ticket(epoch_cfg, epoch + 2, remaining_tickets, ctx);
+
+        transfer::transfer(ticket, @team);
+    }
+
+    public fun recycle_dust(cfg: &Config, incentives: &mut IncentiveTreasury, fd: &mut FeeDistribution, clock: &Clock, ctx: &mut TxContext){
+        config::assert_version(cfg);
+        advance_epoch(cfg, fd, clock);
+
+        let dust_coin = coin::take(&mut fd.bank, fd.dust, ctx);
+        let dust_collected = fd.dust;
+        fd.dust = 0;
+        incentive_treasury::push_incentives(cfg, incentives, dust_coin);
+        event::emit(DustRecycled{
+            amount: dust_collected
+        });
+    }
+
+
+    // ----- View functions
+    public fun current_epoch(clock: &Clock): u64 {
+        clock::timestamp_ms(clock) / ONE_WEEK
+    }
+
+    // ----- Internal functions
+
+    fun new_epoch_cfg(epoch_fees: u64, redeem_price_per_ticket: u64): EpochConfig {
+        let total_tickets = epoch_fees / FIFTY_SUI;
         if (total_tickets < 50) {
             total_tickets = 50
         };
 
-        let price_per_ticket = ceil_div(total_fees, total_tickets);
+        let price_per_ticket = ceil_div(epoch_fees, total_tickets);
         
-        FeeDistribution {
+        EpochConfig {
             total_tickets,
             remaining_tickets: total_tickets,
             price_per_ticket,
-            redeem_reward_per_ticket
+            redeem_price_per_ticket
         }
     }
 
-    public(friend) fun new_fee_ticket(fee_distribution: &mut FeeDistribution, campaing_id: ID, redeem_round: u64, amount: u64, ctx: &mut TxContext): FeeDistributionTicket {
-        assert!(fee_distribution.remaining_tickets >= amount, ENotEnoughTickets);
-        fee_distribution.remaining_tickets = fee_distribution.remaining_tickets - amount;
+
+    fun new_fd_ticket(epoch_cfg: &mut EpochConfig, redeem_epoch: u64, amount: u64, ctx: &mut TxContext): FeeDistributionTicket {
+        assert!(epoch_cfg.remaining_tickets >= amount, ENotEnoughTickets);
+        epoch_cfg.remaining_tickets = epoch_cfg.remaining_tickets - amount;
         FeeDistributionTicket {
             id: object::new(ctx),
-            campaign: campaing_id,
-            redeem_round, 
+            redeem_epoch, 
             amount
         }
     }
 
-    public(friend) fun redeem_fee_ticket(ticket: FeeDistributionTicket): (ID, u64, u64){
-        let FeeDistributionTicket {id, campaign, redeem_round, amount} = ticket;
+    fun redeem_fee_ticket(ticket: FeeDistributionTicket): (u64, u64){
+        let FeeDistributionTicket {id, redeem_epoch, amount} = ticket;
         object::delete(id);
-        (campaign, redeem_round, amount)
+        (redeem_epoch, amount)
     }
 
-    // ----- View functions
-
-    public fun fee_distribution_ticket_details(ticket: &FeeDistributionTicket): (ID, u64, u64) {
-        (ticket.campaign, ticket.redeem_round, ticket.amount)
+    fun add_dust(fd: &mut FeeDistribution, dust: u64){
+        fd.dust = fd.dust + dust;
+        event::emit(DustAccumuldated {
+            dust_amount: dust
+        });
     }
-
-    public fun fee_distribution_total_tickets(fd: &FeeDistribution): u64 {
-        fd.total_tickets
-    }
-
-    public fun fee_distribution_ticket_price(fd: &FeeDistribution): u64 {
-        fd.price_per_ticket
-    }
-
-    public fun fee_distribution_remaining_tickets(fd: &FeeDistribution): u64 {
-        fd.remaining_tickets
-    }
-
-    public fun fee_distribution_reward_per_ticket(fd: &FeeDistribution): u64 {
-        fd.redeem_reward_per_ticket
-    }
-
 
     fun ceil_div(x: u64, y: u64): u64 {
         // `y` will never be 0.
