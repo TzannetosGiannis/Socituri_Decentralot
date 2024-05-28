@@ -218,7 +218,7 @@ module decentralot::lottery {
 
         assert!(!has_active_lottery(campaign), EActiveLotteryExists);
         assert!(object::id(campaign) == lottery.campaign, EObjectMissmatch);
-        // assert!(*option::borrow(&campaign.latest_lotery) == object::id(lottery), EObjectMissmatch);
+    
         let now_ms = clock::timestamp_ms(clock);
         if (is_cf_campaign(campaign)){
             assert!(crowdfunding::deadline(option::borrow(&campaign.crowdfunding)) > now_ms, ECrowdfundingDeadlinePassed);
@@ -283,9 +283,10 @@ module decentralot::lottery {
         });
     }
 
+    // If a lottery had no ticket boughts, any amount in the `bank` will be pushed in the incentive treasury
     public fun claim_empty_lottery(cfg: &Config, lottery: &mut Lottery, incentives: &mut IncentiveTreasury, ctx: &mut TxContext){
         config::assert_version(cfg);
-        assert!(option::is_none(&lottery.winner), ELotteryStillActive);
+        assert!(option::is_some(&lottery.winner), ELotteryStillActive);
         assert!(lottery.total_tickets == 0, ELotteryNotEmpty);
 
         let bank_value = balance::value(&lottery.bank);
@@ -323,7 +324,7 @@ module decentralot::lottery {
         let raised_coin = crowdfunding::close_unsuccessful(option::borrow_mut(&mut campaign.crowdfunding), clock, ctx);
         let total_raised = coin::value(&raised_coin);
 
-        // 90% of the raised funds are refunded to the backers, split equally
+        // A percent of the raised funds are refunded to the backers, split equally
         let refund_amount = config::refund_pct_bps(cfg) * total_raised / BPS_MAX;
         let refund_amount_per_ticket = refund_amount / campaign.total_tickets;
         
@@ -421,7 +422,7 @@ module decentralot::lottery {
 
     // ------- Incentivizing functions
 
-    public fun incentivize(config: &Config, lottery: &mut Lottery,input_coin: Coin<SUI>, clock: &Clock) {
+    public fun incentivize(config: &Config, lottery: &mut Lottery, input_coin: Coin<SUI>, clock: &Clock) {
         config::assert_version(config);
 
         assert!(clock::timestamp_ms(clock) < lottery.end_date, ELotteryExpired);
@@ -436,7 +437,7 @@ module decentralot::lottery {
         })
     }
 
-    public fun pull_treasury_incentives(cfg: &Config, treasury: &mut IncentiveTreasury, lottery: &mut Lottery, clock: &Clock, ctx: &mut TxContext){
+    public fun pull_treasury_incentives(cfg: &Config, lottery: &mut Lottery, treasury: &mut IncentiveTreasury, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
         assert!(clock::timestamp_ms(clock) < lottery.end_date, ELotteryExpired);
 
