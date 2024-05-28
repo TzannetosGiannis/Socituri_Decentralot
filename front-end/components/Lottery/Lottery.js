@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTicket, faInfo, faAward } from '@fortawesome/free-solid-svg-icons';
-import { useGetLottery } from '@/hooks/useGetLottery'; // Import the useGetLottery hook
+import { useGetLottery } from '@/hooks/useGetLottery';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 
 const Lottery = ({
     isLoggedIn,
@@ -18,7 +19,7 @@ const Lottery = ({
     const [amount, setAmount] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFetchingNewLottery, setIsFetchingNewLottery] = useState(false);
-    const { lottery: newLottery, fetchLottery: fetchNewLottery } = useGetLottery(); // Destructure the hook return values
+    const { lottery: newLottery, fetchLottery: fetchNewLottery } = useGetLottery();
 
     useEffect(() => {
         if (lottery) {
@@ -94,9 +95,7 @@ const Lottery = ({
     };    
 
     if (isLoading) {
-        return <div className='bg-gray-800 text-white'>
-            Loading...
-        </div>;
+        return <LoadingSpinner />;
     }
 
     if (!lottery) {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ConnectButton, useCurrentAccount, useCurrentWallet, useSuiClient } from '@mysten/dapp-kit';
+import { ConnectButton, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { MIST_PER_SUI } from '@mysten/sui.js/utils';
 
 const AppNavbar = () => {
@@ -21,16 +21,17 @@ const AppNavbar = () => {
                 console.log(resp.totalBalance);
                 const bal = resp.totalBalance / Number(MIST_PER_SUI);
                 setBalance(bal.toFixed(2));
-            })
+            });
         }
-    }, [currentAccount])
+    }, [currentAccount]);
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
     };
 
     const isActive = (option) => {
-        return router.pathname === `/${option.toLowerCase().replace(/\s/g, '-')}`;
+        const path = option === 'Active Lottery' ? '/socituri/active-lottery' : `/${option.toLowerCase().replace(/\s/g, '-')}`;
+        return router.pathname === path;
     };
 
     const buttonStyle = "text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium";
@@ -41,7 +42,7 @@ const AppNavbar = () => {
 
     const renderSuiWalletButton = () => {
         if (!currentAccount?.address) {
-            return <ConnectButton />
+            return <ConnectButton />;
         }
         return (
             <div className='flex items-center gap-x-[12px]'>
@@ -52,8 +53,8 @@ const AppNavbar = () => {
                     </div>
                 )}
             </div>
-        )
-    }
+        );
+    };
 
     return (
         <nav className="bg-gray-900">
@@ -69,14 +70,13 @@ const AppNavbar = () => {
                     <div className="hidden lg:flex lg:items-center">
                         <div className={buttonGroupStyle}>
                             {navOptions.map((option, index) => (
-                                (<Link
+                                <Link
                                     key={index}
-                                    href={`/${option.toLowerCase().replace(/\s/g, '-')}`}
-                                    className={`${buttonStyle} ${isActive(option) ? 'underline' : ''}`}>
-
+                                    href={option === 'Active Lottery' ? '/socituri/active-lottery' : `/${option.toLowerCase().replace(/\s/g, '-')}`}
+                                    className={`${buttonStyle} ${isActive(option) ? 'underline' : ''}`}
+                                >
                                     {option}
-
-                                </Link>)
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -101,14 +101,13 @@ const AppNavbar = () => {
                 <div className={dropdownStyle}>
                     <div className="px-2 pt-2 pb-3 space-y-1">
                         {navOptions.map((option, index) => (
-                            (<Link
+                            <Link
                                 key={index}
-                                href={`/${option.toLowerCase().replace(/\s/g, '-')}`}
-                                className={`${dropdownItemStyle} ${isActive(option) ? 'underline text-indigo-500' : ''}`}>
-
+                                href={option === 'Active Lottery' ? '/socituri/active-lottery' : `/${option.toLowerCase().replace(/\s/g, '-')}`}
+                                className={`${dropdownItemStyle} ${isActive(option) ? 'underline text-indigo-500' : ''}`}
+                            >
                                 {option}
-
-                            </Link>)
+                            </Link>
                         ))}
                     </div>
                 </div>

@@ -1,20 +1,12 @@
-import { useState } from 'react';
+import React from 'react';
+import { useRouter } from 'next/router';
 
 const CampaignCard = ({ campaign }) => {
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const router = useRouter();
 
   const handleCardClick = () => {
-    setIsPopupOpen(true);
-  };
-
-  const handleClosePopup = () => {
-    setIsPopupOpen(false);
-  };
-
-  const handleOutsideClick = (e) => {
-    if (e.target.id === 'popup-background') {
-      handleClosePopup();
-    }
+    // Navigate to the specific campaign's active lottery page
+    router.push(`/${campaign.title}/active-lottery`);
   };
 
   return (
@@ -84,25 +76,6 @@ const CampaignCard = ({ campaign }) => {
           </div>
         </div>
       </div>
-
-      {isPopupOpen && (
-        <div
-          id="popup-background"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-          onClick={handleOutsideClick}
-        >
-          <div className="bg-white p-8 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-4">Fund with SUI</h2>
-            <p>Here will be the form to fund the campaign using SUI.</p>
-            <button
-              className="mt-4 bg-primary text-white px-4 py-2 rounded"
-              onClick={handleClosePopup}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
