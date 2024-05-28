@@ -1,0 +1,16 @@
+version: '3.7'
+services:
+  mongodb_container:
+    image: mongo:latest
+    restart: always
+    container_name: mongodb_container
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: decentralot_indexer
+      MONGO_INITDB_ROOT_PASSWORD: decentralot_indexer_password
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+    
+volumes:
+  mongodb_data_container:
