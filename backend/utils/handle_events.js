@@ -4,7 +4,7 @@ const campaings = require('../models/campaign');
 
 
 function buy_ticket(event) {
-    console.log({user:event.sender,action:'buy_ticket',ticket_id:event.parsedJson.ticket_id})
+    console.log({action:'buy_ticket',user:event.sender,ticket_id:event.parsedJson.ticket_id})
 }
 
 async function new_campaign(event) {
@@ -23,7 +23,24 @@ async function new_campaign(event) {
 
     let n_camp = new campaings(newMongoObj);
     await n_camp.save();
-    console.log('new campaign in mongo =>',JSON.stringify(newMongoObj));
+    console.log({action:'new_campaign',campaign:event.parsedJson.id})
+}
+
+async function new_lottery(event) {
+    // identify the campaign
+    const campaignId = event.parsedJson.campaign;
+    const specificCampaign = await campaings.findOne({campaignId});
+    specificCampaign.previousLotteries.push({
+        lottery_id:event.parsedJson.id,
+        round: event.parsedJson.round,
+        price: specificCampaign.information.ticket_price,
+        winning_ticket: -1,
+        claimed: false
+    });
+
+    await specificCampaign.save();
+    console.log({action:'new_lottery',lottery_id:event.parsedJson.id,campaign:event.parsedJson.campaign})
+
 }
 
 async function lottery_finished(event) {
@@ -60,6 +77,7 @@ async function lottery_claimed(event) {
 
 module.exports.buy_ticket = buy_ticket;
 module.exports.new_campaign = new_campaign;
+module.exports.new_lottery = new_lottery;
 module.exports.lottery_finished = lottery_finished;
 module.exports.campaign_started = campaign_started;
 module.exports.lottery_claimed = lottery_claimed;
