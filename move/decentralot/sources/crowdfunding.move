@@ -33,11 +33,11 @@ module decentralot::crowdfunding {
         assert!(goal > 0, EInvalidCFParam);
         assert!(deadline > 0, EInvalidCFParam);
         assert!(fee_rate_bps > 0, EInvalidCFParam);
-        assert!(deadline <= MAX_DEADLINE, EDeadlineAboveMax);
+        assert!(deadline <= clock::timestamp_ms(clock) + MAX_DEADLINE, EDeadlineAboveMax);
         assert!(fee_rate_bps <= MAX_FEE_RATE_BPS, EFeeRateAboveMax);
         CrowdFunding {
             goal,
-            deadline: clock::timestamp_ms(clock) + deadline,
+            deadline,
             beneficiary,
             fee_rate_bps,
             project_url,
