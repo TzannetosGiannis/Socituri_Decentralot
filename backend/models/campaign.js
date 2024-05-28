@@ -22,7 +22,7 @@ const campaignSchema = new mongoose.Schema({
 
 const campaign = mongoose.model('campaigns', campaignSchema);
 
-module.exports = scenario;
+module.exports = campaign;
 
 
 // campaignID: {
