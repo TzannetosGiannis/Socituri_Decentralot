@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTicket, faInfo, faAward } from '@fortawesome/free-solid-svg-icons';
+import { useGetLottery } from '@/hooks/useGetLottery'; // Import the useGetLottery hook
 
 const Lottery = ({
     isLoggedIn,
@@ -16,6 +17,8 @@ const Lottery = ({
     const [activeTab, setActiveTab] = useState('countdown');
     const [amount, setAmount] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isFetchingNewLottery, setIsFetchingNewLottery] = useState(false);
+    const { lottery: newLottery, fetchLottery: fetchNewLottery } = useGetLottery(); // Destructure the hook return values
 
     useEffect(() => {
         if (lottery) {
@@ -25,11 +28,32 @@ const Lottery = ({
 
     useEffect(() => {
         const countdownInterval = setInterval(() => {
-            setCountdown(prevCountdown => Math.max(prevCountdown - 1, 0));
+            setCountdown(prevCountdown => {
+                if (prevCountdown <= 1) {
+                    setIsFetchingNewLottery(true);
+                    return 0;
+                }
+                return prevCountdown - 1;
+            });
         }, 1000);
 
         return () => clearInterval(countdownInterval);
     }, []);
+
+    useEffect(() => {
+        if (isFetchingNewLottery) {
+            const fetchNewLotteryInterval = setInterval(async () => {
+                await fetchNewLottery();
+                if (newLottery) {
+                    fetchLottery(); // Update the lottery data
+                    setIsFetchingNewLottery(false);
+                    clearInterval(fetchNewLotteryInterval);
+                }
+            }, 5000); // Try every 5 seconds to fetch the new lottery
+
+            return () => clearInterval(fetchNewLotteryInterval);
+        }
+    }, [isFetchingNewLottery, newLottery, fetchLottery, fetchNewLottery]);
 
     const handleClickPurchase = () => {
         if (!amount || amount <= 0) return;
@@ -89,7 +113,7 @@ const Lottery = ({
                 <div className="text-center mb-8">
                     <h1 className="text-4xl lg:text-6xl font-bold mb-2">
                         {lotteryName ? lotteryName : (
-                            <>Active <span className="text-indigo-500">Lottery</span></>
+                            <>{countdown > 0 ? "Active" : ''} <span className="text-indigo-500">Lottery #{lottery.round}</span>{countdown == 0 ? " Ended" : ''}</>
                         )}
                     </h1>
                     <p className="text-gray-300">Join the excitement and win big!</p>
@@ -113,14 +137,20 @@ const Lottery = ({
                     </div>
                     {activeTab === 'countdown' && (
                         <div className="text-center mb-6 my-8">
-                            <h2 className="text-2xl lg:text-4xl font-bold mb-2">Countdown</h2>
-                            <div className="flex justify-center space-x-2 lg:space-x-4">
-                                {formattedTime.map(part => (
-                                    <div key={part.label} className="bg-indigo-500 text-lg lg:text-4xl font-bold p-2 lg:p-4 rounded-md">
-                                        {part.value}{part.label}
+                            {countdown > 0 ? (
+                                <>
+                                    <h2 className="text-2xl lg:text-4xl font-bold mb-2">Countdown</h2>
+                                    <div className="flex justify-center space-x-2 lg:space-x-4">
+                                        {formattedTime.map(part => (
+                                            <div key={part.label} className="bg-indigo-500 text-lg lg:text-4xl font-bold p-2 lg:p-4 rounded-md">
+                                                {part.value}{part.label}
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                </>
+                            ) : (
+                                <div className="text-lg lg:text-2xl font-bold text-indigo-500">New lottery starting soon...</div>
+                            )}
                         </div>
                     )}
                     {activeTab === 'stats' && isLoggedIn && (
@@ -143,7 +173,7 @@ const Lottery = ({
                             </div>
                         </div>
                     )}
-                    {activeTab === 'countdown' && (
+                    {activeTab === 'countdown' && countdown > 0 && (
                         <div className="flex items-center justify-center mb-6">
                             <div className="bg-indigo-500 text-gray-100 rounded-full p-3 mr-8">
                                 <FontAwesomeIcon icon={faAward} className="w-6 h-6" />
@@ -154,7 +184,7 @@ const Lottery = ({
                             </div>
                         </div>
                     )}
-                    {isLoggedIn && (
+                    {isLoggedIn && countdown > 0 && (
                         <div className="text-center mt-6">
                             <button onClick={() => setIsModalOpen(true)} className="h-14 inline-block bg-indigo-500 hover:bg-indigo-600 text-lg lg:text-xl text-white font-bold py-4 px-12 lg:px-16 rounded-lg shadow-lg transition duration-300">Buy Your Tickets Now</button>
                         </div>

@@ -22,6 +22,8 @@ export const useGetLottery = (lotteryId) => {
           endDate: fields.end_date,
           bank: fields.bank,
           ticketPrice: fields.ticket_price,
+          round: fields.round,
+          total_rounds: fields.total_rounds,
         };
         setLottery(lottery);
         setIsLoading(false);
