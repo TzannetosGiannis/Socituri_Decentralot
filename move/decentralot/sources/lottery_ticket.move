@@ -2,7 +2,6 @@ module decentralot::lottery_ticket {
     use sui::object::{Self, UID, ID};
     use sui::tx_context::TxContext;
 
-
     friend decentralot::lottery;
     
     struct LotteryTicket has key, store {
@@ -21,6 +20,11 @@ module decentralot::lottery_ticket {
         }
     }
 
+    public(friend) fun burn(ticket: LotteryTicket) {
+        let LotteryTicket {id, campaign: _, ticket_number: _, lottery_round: _} = ticket;
+        object::delete(id);
+    }
+
     public fun is_winning_ticket(ticket: &LotteryTicket, campaign: ID, number: u64, round: u64): bool {
         ticket.ticket_number == number && ticket.lottery_round == round && ticket.campaign == campaign
     }
@@ -29,9 +33,5 @@ module decentralot::lottery_ticket {
         ticket.campaign == campaign
     }
 
-    public(friend) fun burn(ticket: LotteryTicket) {
-        let LotteryTicket {id, campaign: _, ticket_number: _, lottery_round: _} = ticket;
-        object::delete(id);
-    }
 
 }
