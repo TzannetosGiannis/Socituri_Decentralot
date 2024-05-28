@@ -10,6 +10,7 @@ module decentralot::lottery {
     use sui::clock::{Self, Clock};
     use sui::dynamic_field;
     use sui::coin::{Self, Coin};
+    use sui::random::{Self, Random};
     use std::option::{Self, Option};
     use std::string::{String, utf8};
 
@@ -239,7 +240,7 @@ module decentralot::lottery {
         transfer::public_share_object(new_lottery);
     }
 
-    public fun end_lottery(_: &AdminCap, cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, winner: u64, fd: &mut FeeDistribution, clock: &Clock, ctx: &mut TxContext){
+    entry fun end_lottery(_: &AdminCap, cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, r: &Random, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
         
         assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
@@ -262,6 +263,13 @@ module decentralot::lottery {
             crowdfunding::add_funds(option::borrow_mut(&mut campaign.crowdfunding), cf_coin);
         };
 
+        let winner = 0;
+
+        if (lottery.total_tickets != 0){
+            let generator = random::new_generator(r, ctx);
+            winner = random::generate_u64_in_range(&mut generator, 0, lottery.total_tickets - 1);   
+        };
+
         lottery.winner = option::some(winner);
         campaign.latest_lotery = option::none();
         campaign.total_tickets = campaign.total_tickets + lottery.total_tickets;
@@ -273,6 +281,7 @@ module decentralot::lottery {
             raised: cf_amount,
         });
     }
+
 
     // ------ Manage Crowdfunding campaigns
 
