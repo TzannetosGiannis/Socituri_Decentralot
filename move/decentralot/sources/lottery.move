@@ -487,8 +487,6 @@ module decentralot::lottery {
         option::is_some(&campaign.crowdfunding)
     }
 
-
-
     // ----- Private Functions
     fun new_lottery(ticket_price: u64, end_date: u64, round: u64, campaign_id: ID, ctx: &mut TxContext): Lottery {
         Lottery {

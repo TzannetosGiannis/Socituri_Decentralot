@@ -63,6 +63,8 @@ module decentralot::config {
     }
 
     public fun set_protocol_fee_bps(_: &AdminCap, config: &mut Config, new_fee_bps: u64) {
+        assert_version(config);
+
         assert!(new_fee_bps <= MAX_FEE_BPS, EFeeAboveMax);
         let old_fee_bps = config.protocol_fee_bps;
         config.protocol_fee_bps = new_fee_bps;
@@ -74,6 +76,8 @@ module decentralot::config {
     }
 
     public fun set_protocol_refund_bps(_: &AdminCap, config: &mut Config, new_refund_pct_bps: u64) {
+        assert_version(config);
+        
         assert!(new_refund_pct_bps <= MAX_REFUND_PCT, ERefundPctAboveMax);
         let old_refund_pct_bps = config.refund_pct_bps;
         config.refund_pct_bps = new_refund_pct_bps;
@@ -84,10 +88,11 @@ module decentralot::config {
         })
     }
 
-    public fun update_package_version(_: &AdminCap, config: &mut Config, version: u64) {
-        config.package_version = version;
+    public fun update_package_version(_: &AdminCap, config: &mut Config) {
+        let new_version = config.package_version + 1;
+        config.package_version = new_version;
         emit(UpdatePackageVersion {
-            new_version: version,
+            new_version
         });
     }
 
