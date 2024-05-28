@@ -39,6 +39,7 @@ module decentralot::lottery {
     const ENotRefundEligible: u64 = 12;
     const ENotBeneficiary : u64 = 13;
     const ECampaignMissmatch: u64 = 14;
+    const ELotteryNotEmpty: u64 = 15;
 
     struct Campaign has key {
         id: UID,
@@ -282,6 +283,15 @@ module decentralot::lottery {
         });
     }
 
+    public fun claim_empty_lottery(cfg: &Config, lottery: &mut Lottery, incentives: &mut IncentiveTreasury, ctx: &mut TxContext){
+        config::assert_version(cfg);
+        assert!(option::is_none(&lottery.winner), ELotteryStillActive);
+        assert!(lottery.total_tickets == 0, ELotteryNotEmpty);
+
+        let bank_value = balance::value(&lottery.bank);
+        let incentives_coin = coin::take(&mut lottery.bank, bank_value, ctx);
+        incentive_treasury::push_incentives(cfg, incentives, incentives_coin);
+    }
 
     // ------ Manage Crowdfunding campaigns
 
