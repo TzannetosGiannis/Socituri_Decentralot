@@ -241,7 +241,7 @@ module decentralot::lottery {
         transfer::public_share_object(new_lottery);
     }
 
-    entry fun end_lottery(_: &AdminCap, cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, r: &Random, clock: &Clock, ctx: &mut TxContext){
+    entry fun end_lottery(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, r: &Random, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
         
         assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
