@@ -14,11 +14,9 @@ const AppNavbar = () => {
 
     useEffect(() => {
         if (currentAccount?.address) {
-            console.log(currentAccount.address);
             suiClient.getBalance({
                 owner: currentAccount.address,
             }).then((resp) => {
-                console.log(resp.totalBalance);
                 const bal = resp.totalBalance / Number(MIST_PER_SUI);
                 setBalance(bal.toFixed(2));
             });
@@ -29,14 +27,17 @@ const AppNavbar = () => {
         setIsOpen(!isOpen);
     };
 
+    const getLinkPath = (option) => {
+        return option === 'Active Lottery' ? '/socituri/active-lottery' : `/${option.toLowerCase().replace(/\s/g, '-')}`;
+    };
+
     const isActive = (option) => {
-        const path = option === 'Active Lottery' ? '/socituri/active-lottery' : `/${option.toLowerCase().replace(/\s/g, '-')}`;
-        return router.pathname === path;
+        const path = getLinkPath(option);
+        return router.pathname === path || (option === 'Active Lottery' && router.pathname.includes('/active-lottery'));
     };
 
     const buttonStyle = "text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium";
     const buttonGroupStyle = "flex space-x-4";
-    const launchButtonStyle = "flex h-[30px] w-[122px] cursor-pointer items-center justify-center rounded-[8px] bg-indigo-500 lg:h-[40px] lg:w-[163px] mr-4";
     const dropdownStyle = "lg:hidden";
     const dropdownItemStyle = "block px-3 py-2 rounded-md text-white text-base font-medium";
 
@@ -72,7 +73,7 @@ const AppNavbar = () => {
                             {navOptions.map((option, index) => (
                                 <Link
                                     key={index}
-                                    href={option === 'Active Lottery' ? '/socituri/active-lottery' : `/${option.toLowerCase().replace(/\s/g, '-')}`}
+                                    href={getLinkPath(option)}
                                     className={`${buttonStyle} ${isActive(option) ? 'underline' : ''}`}
                                 >
                                     {option}
@@ -103,7 +104,7 @@ const AppNavbar = () => {
                         {navOptions.map((option, index) => (
                             <Link
                                 key={index}
-                                href={option === 'Active Lottery' ? '/socituri/active-lottery' : `/${option.toLowerCase().replace(/\s/g, '-')}`}
+                                href={getLinkPath(option)}
                                 className={`${dropdownItemStyle} ${isActive(option) ? 'underline text-indigo-500' : ''}`}
                             >
                                 {option}

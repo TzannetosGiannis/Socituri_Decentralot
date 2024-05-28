@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTicket, faInfo, faAward } from '@fortawesome/free-solid-svg-icons';
 import { useGetLottery } from '@/hooks/useGetLottery';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import NotFound from '@/components/NotFound/NotFound';
 
 const Lottery = ({
     isLoggedIn,
@@ -99,9 +100,7 @@ const Lottery = ({
     }
 
     if (!lottery) {
-        return <div className='bg-gray-800 text-white'>
-            Lottery not found.
-        </div>;
+        return <NotFound />;
     }
 
     const formattedTime = formatTime(countdown);

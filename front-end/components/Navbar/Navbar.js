@@ -10,7 +10,7 @@ const Navbar = () => {
         setIsOpen(!isOpen);
     };
 
-    const appPage = "/active-lottery";
+    const appPage = "/socituri/active-lottery";
 
     // Shared Tailwind CSS strings as constants
     const buttonStyle = "text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium";

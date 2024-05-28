@@ -12,9 +12,8 @@ const Hero = () => {
                     <h1 className="text-4xl lg:text-6xl font-bold text-white mb-4 lg:mb-8">Empowering Fairness and Innovation</h1>
                     <p className="text-lg lg:text-xl text-gray-300 mb-8 lg:mb-12">Join our community to experience trustless and verifiable randomness, support ecosystem projects through crowdfunding, and participate in a truly decentralized and fair lottery.</p>
                     <div className="flex justify-center lg:justify-start">
-                        {/* Updated Launch App button */}
                         <Link
-                            href="/app"
+                            href="/socituri/active-lottery"
                             className={`${launchButtonStyle} transition text-white duration-300 ease-in-out`}>
                             
                                 Launch App
