@@ -73,7 +73,9 @@ async function lottery_finished(event) {
         if (campaign.previousLotteries[i].lottery_id == event.parsedJson.id) {
             campaign.previousLotteries[i].prize = event.parsedJson.raised;
             campaign.previousLotteries[i].winning_ticket = event.parsedJson.winner;   
-            campaign.previousLotteries[i].protocol_fee = event.parsedJson.protocol_fee;   
+            campaign.previousLotteries[i].protocol_fee = event.parsedJson.protocol_fee;  
+            const winning_ticket = await tickets.findOne({lotteryId:event.parsedJson.id,number:event.parsedJson.winner});
+            campaign.previousLotteries[i].winner_address = winning_ticket.address;
             break;
         }
     }
