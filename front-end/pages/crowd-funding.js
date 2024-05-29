@@ -1,41 +1,48 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import CampaignCard from '@/components/CampaignCard/CampaignCard';
-
-const campaigns = [
-  {
-    title: 'Moving Doors',
-    description: 'Fully serviced and equipped flexible accommodation for business professionals and digital nomads.',
-    bannerImage: 'https://via.placeholder.com/500x200',
-    iconImage: 'https://via.placeholder.com/100',
-    tags: ['CIE Tax Relief', 'VC-backed', 'PropTech', 'Seed+'],
-    status: '112% - 71 days left',
-    progress: '111.7%',
-    valuation: '€15,000,000',
-    target: '€100,000',
-    investors: '12',
-  },
-  {
-    title: 'Phi',
-    description: '3D Design Software | Reinventing Surface Modeling',
-    bannerImage: 'https://via.placeholder.com/500x200',
-    iconImage: 'https://via.placeholder.com/100',
-    tags: ['Equity', 'Deep Tech', '3D Design', 'Seed+', 'VC-backed'],
-    status: 'Coming soon',
-    progress: '0%',
-    valuation: 'TBD',
-    target: 'TBD',
-    investors: '0',
-  },
-];
+import { fetchCampaigns } from '@/utils/fetchCampaigns';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner'; // Assume you have a loading spinner component
+import NotFound from '@/components/NotFound/NotFound'; // Assume you have a NotFound component
 
 const CrowdFundingPage = () => {
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const getCampaigns = async () => {
+      try {
+        const data = await fetchCampaigns();
+        setCampaigns(data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getCampaigns();
+  }, []);
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <p>Error: {error.message}</p>;
+  }
+
+  if (campaigns.length === 0) {
+    return <NotFound />;
+  }
+
   return (
     <div className="bg-gray-800 min-h-screen flex justify-center">
       <div className="container mx-auto p-4">
         <div className="max-w-11/12 w-full mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
             {campaigns.map((campaign, index) => (
-              <CampaignCard key={index} campaign={campaign} />
+              <CampaignCard key={index} campaignId={campaign.campaign_id} information={campaign.information} />
             ))}
           </div>
         </div>

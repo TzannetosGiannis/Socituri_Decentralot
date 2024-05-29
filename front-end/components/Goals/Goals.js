@@ -7,17 +7,17 @@ const FeatureHighlight = () => {
         {
             title: "Truly Decentralized Fair Lottery",
             description: "Ensures fair and transparent lottery using blockchain technology.",
-            icon: "/icons/decentralized-lottery.svg",
+            icon: "/assets/goals/fair-lottery.webp",
         },
         {
             title: "Support Ecosystem Projects",
             description: "Facilitates crowdfunding for innovative ecosystem projects.",
-            icon: "/icons/crowdfunding.svg",
+            icon: "/assets/goals/support-ecosystem-projects.webp",
         },
         {
             title: "Community Centered",
             description: "Prioritizes user needs and fosters a supportive community.",
-            icon: "/icons/community-centered.svg",
+            icon: "/assets/goals/community-centered.webp",
         },
         // Add more features as needed
     ];
@@ -30,7 +30,7 @@ const FeatureHighlight = () => {
                     {/* Map through each feature and render a card */}
                     {features.map((feature, index) => (
                         <div key={index} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transform transition duration-300 hover:scale-105">
-                            <img src={feature.icon} alt={feature.title} className="w-12 h-12 mx-auto mb-4" />
+                            <img src={feature.icon} alt={feature.title} className="mx-auto mb-4 rounded-xl" />
                             <h3 className="text-xl font-semibold text-gray-700 text-center mb-2">{feature.title}</h3>
                             <p className="text-sm text-gray-600 text-center">{feature.description}</p>
                         </div>

@@ -26,8 +26,8 @@ const Navbar = () => {
                     {/* Left side */}
                     <div className="flex-shrink-0 flex items-center">
                         {/* Replace 'logo.svg' with your actual logo image */}
-                        <img className="block lg:hidden h-8 w-auto" src="/logo.svg" alt="Logo" />
-                        <img className="hidden lg:block h-8 w-auto" src="/logo.svg" alt="Logo" />
+                        <img className="block lg:hidden h-14 w-auto" src="/assets/logo.webp" alt="Logo" />
+                        <img className="hidden lg:block h-14 w-auto" src="/assets/logo.webp" alt="Logo" />
                     </div>
 
                     {/* Right side for larger screens */}

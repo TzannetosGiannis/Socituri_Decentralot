@@ -6,7 +6,7 @@ const Roadmap = () => {
         {
             phase: "Phase 1",
             name: "Genesis",
-            color: "#FF6B6B",
+            color: "#e95833",
             tasks: [
                 { name: "Developed Contracts", done: true },
                 { name: "Launch Dapp v1", done: true },
@@ -17,7 +17,7 @@ const Roadmap = () => {
         {
             phase: "Phase 2",
             name: "Launch",
-            color: "#4FD1C5",
+            color: "#e9b333",
             tasks: [
                 { name: "Launch Dapp v2 on mainet", done: false },
                 { name: "Reward early supporters", done: false },
@@ -30,7 +30,7 @@ const Roadmap = () => {
         {
             phase: "Phase 3",
             name: "Momentum",
-            color: "#FFD166",
+            color: "#3d85c6",
             tasks: [
                 { name: "Strategic ecosystem partnerships", done: false },
                 { name: "Design tokenomics", done: false },

@@ -4,17 +4,17 @@ const Services = () => {
     // Define an array of services with their respective details
     const services = [
         {
-            image: "/service1.jpg",
+            image: "/assets/services/trustless-verifiable.webp",
             title: "Trustless and Verifiable Randomness",
             description: "Our platform offers trustless and verifiable randomness, ensuring fair and transparent processes for all participants."
         },
         {
-            image: "/service2.jpg",
+            image: "/assets/services/protocol-earnings.webp",
             title: "Participate in Protocol Earnings",
             description: "Users can actively participate in protocol earnings, gaining rewards and contributing to the growth and sustainability of the platform."
         },
         {
-            image: "/service3.jpg",
+            image: "/assets/services/trustless-verifiable.webp",
             title: "Bootstrap Crowdfunding Lottery Campaigns",
             description: "Kickstart your projects with our bootstrap crowdfunding lottery campaigns, providing a unique and engaging way to raise funds."
         },
@@ -30,7 +30,7 @@ const Services = () => {
                         <div className="lg:w-1/2 lg:pr-8">
                             <img src={service.image} alt={service.title} className="rounded-lg shadow-lg mb-4 lg:mb-0 lg:mr-8" />
                         </div>
-                        <div className="lg:w-1/2 lg:pl-8">
+                        <div className="lg:w-1/2 lg:pl-8 flex flex-col justify-center items-center text-center">
                             <h3 className="text-2xl lg:text-3xl text-white font-semibold mb-2">{service.title}</h3>
                             <p className="text-sm lg:text-base text-gray-400">{service.description}</p>
                         </div>

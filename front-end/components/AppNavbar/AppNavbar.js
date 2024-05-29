@@ -63,8 +63,8 @@ const AppNavbar = () => {
                 <div className="flex justify-between h-16">
                     <div className="flex-shrink-0 flex items-center">
                         <Link href="/">
-                            <img className="block lg:hidden h-8 w-auto" src="/logo.svg" alt="Logo" />
-                            <img className="hidden lg:block h-8 w-auto" src="/logo.svg" alt="Logo" />
+                            <img className="block lg:hidden h-14 w-auto" src="/assets/logo.webp" alt="Logo" />
+                            <img className="hidden lg:block h-14 w-auto" src="/assets/logo.webp" alt="Logo" />
                         </Link>
                     </div>
 

@@ -13,7 +13,7 @@ const Lottery = ({
     isLoading,
     handlePurchase,
     fetchLottery,
-    lotteryName, // New prop for the lottery name
+    lotteryName,
 }) => {
     const [countdown, setCountdown] = useState(0);
     const [activeTab, setActiveTab] = useState('countdown');
@@ -47,11 +47,11 @@ const Lottery = ({
             const fetchNewLotteryInterval = setInterval(async () => {
                 await fetchNewLottery();
                 if (newLottery) {
-                    fetchLottery(); // Update the lottery data
+                    fetchLottery();
                     setIsFetchingNewLottery(false);
                     clearInterval(fetchNewLotteryInterval);
                 }
-            }, 5000); // Try every 5 seconds to fetch the new lottery
+            }, 5000);
 
             return () => clearInterval(fetchNewLotteryInterval);
         }
@@ -70,7 +70,7 @@ const Lottery = ({
         });
     };
 
-    const formatTime = (seconds) => {    
+    const formatTime = (seconds) => {
         const years = Math.floor(seconds / (3600 * 24 * 365));
         seconds %= 3600 * 24 * 365;
         const months = Math.floor(seconds / (3600 * 24 * 30));
@@ -80,7 +80,7 @@ const Lottery = ({
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
         const remainingSeconds = Math.floor(seconds % 60);
-    
+
         const timeParts = [
             { value: years, label: 'Y' },
             { value: months, label: 'M' },
@@ -89,11 +89,10 @@ const Lottery = ({
             { value: minutes, label: 'M' },
             { value: remainingSeconds, label: 'S' },
         ];
-    
-        // Remove leading zero parts but keep at least one part
+
         const significantTimeParts = timeParts.slice(timeParts.findIndex(part => part.value > 0));
         return significantTimeParts.length ? significantTimeParts : [timeParts[timeParts.length - 1]];
-    };    
+    };
 
     if (isLoading) {
         return <LoadingSpinner />;
@@ -111,7 +110,7 @@ const Lottery = ({
                 <div className="text-center mb-8">
                     <h1 className="text-4xl lg:text-6xl font-bold mb-2">
                         {lotteryName ? lotteryName : (
-                            <>{countdown > 0 ? "Active" : ''} <span className="text-indigo-500">Lottery #{lottery.round}</span>{countdown == 0 ? " Ended" : ''}</>
+                            <>{countdown > 0 ? "Active" : ''} <span className="text-indigo-500">Lottery #{lottery.round}</span>{countdown === 0 ? " Ended" : ''}</>
                         )}
                     </h1>
                     <p className="text-gray-300">Join the excitement and win big!</p>
@@ -163,7 +162,7 @@ const Lottery = ({
                             <div>
                                 <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-300">Pool Percentage</h2>
                                 <div className="text-lg lg:text-xl font-bold text-indigo-500">
-                                    {lottery.bank === 0
+                                    {lottery.bank === 0 || ownedTickets.length === 0
                                         ? 0
                                         : ((ownedTickets.length * lottery.ticketPrice) / lottery.bank * 100).toFixed(2)
                                     }%

@@ -23,7 +23,7 @@ const Hero = () => {
                 </div>
                 {/* Right column */}
                 <div className="lg:w-1/2 lg:pl-8 mt-8 lg:mt-0">
-                    <img className="mx-auto lg:mx-0 rounded-lg shadow-lg max-w-full" src="/assets/lottery.webp" alt="Product Image" />
+                    <img className="mx-auto lg:mx-0 rounded-xl shadow-lg max-w-full" src="/assets/lottery.webp" alt="Product Image" />
                 </div>
             </div>
         </div>
