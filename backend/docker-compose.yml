@@ -11,6 +11,18 @@ services:
       - 27018:27017
     volumes:
       - mongodb_data_container:/data/db
+
+  socituri_backend:
+    container_name: backend
+    restart: always
+    environment:
+      DB_HOST: mongodb_container
+      DB_PORT: 27017
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - 3001:3001
     
 volumes:
   mongodb_data_container:
