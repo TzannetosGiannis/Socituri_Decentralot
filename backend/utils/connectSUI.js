@@ -1,6 +1,6 @@
 const {getFullnodeUrl, SuiClient ,SuiHTTPTransport} = require('@mysten/sui.js/client');
 const WebSocket = require('ws')
-const {buy_ticket,new_campaign,new_lottery} = require('./handle_events');
+const {buy_ticket,new_campaign,new_lottery,lottery_finished} = require('./handle_events');
 
 // use getFullnodeUrl to define Devnet RPC location
 const rpcUrl = getFullnodeUrl('testnet');
@@ -40,6 +40,10 @@ async function connectSUI() {
                     }
 
                     // handle lottery finished
+                    if(eventType.endsWith("::lottery::LotteryEnded")) {
+                        await lottery_finished(event);
+                    }
+
 
                     // handle campaignh started
 

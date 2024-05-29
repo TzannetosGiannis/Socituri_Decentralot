@@ -60,19 +60,26 @@ async function new_lottery(event) {
 }
 
 async function lottery_finished(event) {
+
+    // identify the campaign from the lottery
+
+    const campaign = await campaings.findOne({
+        previousLotteries: {
+            $elemMatch: { lottery_id: event.parsedJson.id }
+        }
+    });
+
+    for(let i = 0; i < campaign.previousLotteries.length; i++) {
+        if (campaign.previousLotteries[i].lottery_id == event.parsedJson.id) {
+            campaign.previousLotteries[i].prize = event.parsedJson.raised;
+            campaign.previousLotteries[i].winning_ticket = event.parsedJson.winner;   
+            campaign.previousLotteries[i].protocol_fee = event.parsedJson.protocol_fee;   
+            break;
+        }
+    }
     
-    // identify the campaign we are refering to
-
-    // construct object of the form
-
-        //         {
-        //             round: 1,
-        //             price: 1000,
-        //             winning_ticket: 123,
-        //             claimed: false
-        //         },
-
-    // push it to mongo model in previous Lotteries
+   await campaign.save();
+   console.log({action:'lottery_ended',lottery_id:event.parsedJson.id,winner:event.parsedJson.winner });
 
 }
 
