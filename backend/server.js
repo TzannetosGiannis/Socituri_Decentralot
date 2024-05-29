@@ -1,3 +1,4 @@
+require('custom-env').env('localhost');
 const app = require('./app');
 const connectMongo = require('./utils/connectMongo');
 const connectSUI = require('./utils/connectSUI');
