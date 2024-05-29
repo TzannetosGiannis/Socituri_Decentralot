@@ -1,3 +1,4 @@
+import { NextSeo } from 'next-seo';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/store/authContext';
@@ -91,8 +92,37 @@ const ActiveLotteryPage = () => {
         return <NotFound />;
     }
 
+    const seoConfig = {
+        title: name ? `${name} Lottery` : 'Active Lottery',
+        description: lottery ? `Join the ${lottery.name} lottery and win big!` : 'Participate in our exciting lottery events and win amazing prizes!',
+        openGraph: {
+            title: name ? `${name} Lottery` : 'Active Lottery',
+            description: lottery ? `Join the ${lottery.name} lottery and win big!` : 'Participate in our exciting lottery events and win amazing prizes!',
+            images: [
+                {
+                    url: 'https://example.com/lottery-image.jpg', // TODO: Add a real image URL
+                    width: 800,
+                    height: 600,
+                    alt: 'Lottery Image', // TODO: Add a real image alt text
+                },
+            ],
+            site_name: 'Lottery Site', // TODO: Add your site name
+        },
+        additionalMetaTags: [
+            {
+                name: 'keywords',
+                content: 'lottery, tickets, win, prizes, gaming, luck',
+            },
+            {
+                name: 'author', // TODO: Add your company name
+                content: 'Your Company Name', // TODO: Add your company name
+            },
+        ],
+    };
+    
     return (
         <div className="bg-gray-800 min-h-screen flex flex-col justify-center items-center">
+            <NextSeo {...seoConfig} />
             <div className="container mx-auto p-4">
                 <Lottery
                     isLoggedIn={isLoggedIn}
