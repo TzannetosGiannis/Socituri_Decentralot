@@ -28,23 +28,23 @@ module decentralot::lottery {
     const ECannotRefundNonCFCampaign: u64 = 1;
     const EActiveLotteryExists: u64 = 2;
     const ECrowdfundingDeadlinePassed: u64 = 3;
-    const EObjectMissmatch: u64 = 4;
-    const ELotteryExpired: u64 = 5;
-    const EIncorrectPaymentAmount: u64 = 6;
-    const ELotteryStillActive: u64 = 7;
-    const ELotteryAlreadyEnded: u64 = 8;
-    const EPrizeAlreadyClaimed: u64 = 9;
-    const EWinnerNotDecided: u64 = 10;
-    const ENoLotteryWinner: u64 = 11;
-    const ENotRefundEligible: u64 = 12;
-    const ENotBeneficiary : u64 = 13;
-    const ECampaignMissmatch: u64 = 14;
-    const ELotteryNotEmpty: u64 = 15;
+    const ELotteryExpired: u64 = 4;
+    const EIncorrectPaymentAmount: u64 = 5;
+    const ELotteryStillActive: u64 = 6;
+    const ELotteryAlreadyEnded: u64 = 7;
+    const EPrizeAlreadyClaimed: u64 = 8;
+    const EWinnerNotDecided: u64 = 9;
+    const ENoLotteryWinner: u64 = 10;
+    const ENotRefundEligible: u64 = 11;
+    const ENotBeneficiary : u64 = 12;
+    const ECampaignMissmatch: u64 = 13;
+    const ELotteryNotEmpty: u64 = 14;
 
     struct Campaign has key {
         id: UID,
         total_tickets: u64,
         duration: u64,
+        ticket_price: u64,
         round: u64,
         latest_lotery: Option<ID>,
         crowdfunding: Option<CrowdFunding>
@@ -138,6 +138,7 @@ module decentralot::lottery {
             id: object::new(ctx),
             total_tickets: 0,
             duration,
+            ticket_price,
             round: 0,
             latest_lotery: option::none(),
             crowdfunding: option::none(),
@@ -180,6 +181,7 @@ module decentralot::lottery {
             id: object::new(ctx),
             total_tickets: 0,
             duration,
+            ticket_price,
             round: 0,
             latest_lotery: option::none(),
             crowdfunding: option::some(cf)
@@ -213,27 +215,28 @@ module decentralot::lottery {
         transfer::public_share_object(lottery);
     }
 
-    public fun new_round(cfg: &Config, campaign: &mut Campaign, lottery: &Lottery, clock: &Clock, ctx: &mut TxContext){
+    public fun new_round(cfg: &Config, campaign: &mut Campaign, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
 
         assert!(!has_active_lottery(campaign), EActiveLotteryExists);
-        assert!(object::id(campaign) == lottery.campaign, EObjectMissmatch);
     
         let now_ms = clock::timestamp_ms(clock);
         if (is_cf_campaign(campaign)){
             assert!(crowdfunding::deadline(option::borrow(&campaign.crowdfunding)) > now_ms, ECrowdfundingDeadlinePassed);
         };
 
+
+        let campaign_id = object::id(campaign);
         let end_date = now_ms + campaign.duration;
-        let new_lottery = new_lottery(lottery.ticket_price, end_date, lottery.round + 1, lottery.campaign, ctx);
+        let new_lottery = new_lottery(campaign.ticket_price, end_date, campaign.round + 1, campaign_id, ctx);
         campaign.latest_lotery = option::some(object::id(&new_lottery));
         campaign.round = campaign.round + 1;
 
         
         event::emit(NewLottery{
             id: object::id(&new_lottery),
-            campaign: lottery.campaign,
-            ticket_price: lottery.ticket_price,
+            campaign: campaign_id,
+            ticket_price: campaign.ticket_price,
             end_date,
             round: campaign.round
         });
