@@ -28,6 +28,8 @@ jobs:
             git pull
             docker-compose down --rmi all
             docker-compose up -d
-      
+            cd ~/Socituri_Decentralot/backend
+            docker-compose down --rmi all
+            docker-compose up -d
 
              
