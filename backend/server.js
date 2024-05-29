@@ -4,7 +4,7 @@ const connectSUI = require('./utils/connectSUI');
 
 (async () => {
   await connectMongo();
-  await connectSUI();
+  connectSUI();
   const app = require('./app');
 
   const PORT = process.env.port || 3001;
