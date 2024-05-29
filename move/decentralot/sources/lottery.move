@@ -286,6 +286,41 @@ module decentralot::lottery {
         });
     }
 
+    public fun end_lottery(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, winner: u64, clock: &Clock, ctx: &mut TxContext){
+        config::assert_version(cfg);
+        
+        assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
+
+        assert!(lottery.end_date < clock::timestamp_ms(clock), ELotteryStillActive);
+        assert!(option::is_none(&lottery.winner), ELotteryAlreadyEnded);
+
+        // Protocol fee is only claimed on the tickets - not the incentives
+        let protocol_fee_amount = (balance::value(&lottery.bank) - lottery.incentives) *  config::protocol_fee_bps(cfg) / BPS_MAX;
+        let protocol_coin = coin::take(&mut lottery.bank, protocol_fee_amount, ctx);
+        fee_distribution::add_fees(cfg, fd, protocol_coin, clock);
+        let cf_amount = 0;
+
+        if (is_cf_campaign(campaign)){
+            let cf = option::borrow(&campaign.crowdfunding);
+            let keep_rate = crowdfunding::keep_rate_bps(cf);
+            let keep = ((balance::value(&lottery.bank) - lottery.incentives) * keep_rate) / BPS_MAX;
+
+            let cf_coin = coin::take(&mut lottery.bank, keep, ctx);
+            crowdfunding::add_funds(option::borrow_mut(&mut campaign.crowdfunding), cf_coin);
+        };
+
+        lottery.winner = option::some(winner);
+        campaign.latest_lotery = option::none();
+        campaign.total_tickets = campaign.total_tickets + lottery.total_tickets;
+
+        event::emit(LotteryEnded{
+            id: object::id(lottery),
+            winner,
+            protocol_fee: protocol_fee_amount,
+            raised: cf_amount,
+        });
+    }
+
     // If a lottery had no ticket boughts, any amount in the `bank` will be pushed in the incentive treasury
     public fun claim_empty_lottery(cfg: &Config, lottery: &mut Lottery, incentives: &mut IncentiveTreasury, ctx: &mut TxContext){
         config::assert_version(cfg);
