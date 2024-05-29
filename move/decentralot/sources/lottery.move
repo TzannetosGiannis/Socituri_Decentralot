@@ -286,7 +286,7 @@ module decentralot::lottery {
         });
     }
 
-    public fun end_lottery(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, winner: u64, clock: &Clock, ctx: &mut TxContext){
+    public fun end_lottery_no_random(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, winner: u64, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
         
         assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
