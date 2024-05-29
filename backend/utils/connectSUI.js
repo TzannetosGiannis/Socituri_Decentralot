@@ -22,7 +22,7 @@ async function connectSUI() {
             
             // handle buyTicket
             if(eventType.endsWith("::lottery::TicketBought")) {
-                buy_ticket(event);
+                await buy_ticket(event);
             }
 
             // handle the creation of a new campaign

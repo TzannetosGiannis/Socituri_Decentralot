@@ -1,9 +1,25 @@
 // [TODO] understand if we need to find the new campaigns from events 
 // [TODO] or create them when they finish
 const campaings = require('../models/campaign');
+const ticket = require('../models/ticket');
+const tickets = require('../models/ticket')
 
 
-function buy_ticket(event) {
+async function buy_ticket(event) {
+
+   
+    let ticketObj = {
+        address: event.sender,
+        campaignId:event.parsedJson.campaign,
+        lotteryId:event.parsedJson.lottery,
+        ticketId:event.parsedJson.ticket_id,
+        round: event.parsedJson.round,
+        number: event.parsedJson.number,
+    }
+
+    let n_tick = new ticket(ticketObj);
+    await n_tick.save()
+    // find the correspoding campaign
     console.log({action:'buy_ticket',user:event.sender,ticket_id:event.parsedJson.ticket_id})
 }
 

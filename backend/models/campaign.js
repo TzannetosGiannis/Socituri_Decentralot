@@ -4,7 +4,7 @@ const campaignSchema = new mongoose.Schema({
     campaignId: {
         type: String,
         required: true,
-        uniques: true
+        unique: true
     },
     previousLotteries: {
         type: Array,
