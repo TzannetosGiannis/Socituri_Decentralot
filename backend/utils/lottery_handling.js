@@ -94,7 +94,7 @@ async function endLottery() {
                 }
             }
         }
-        await sleep(60 * 1000);
+        await sleep(20 * 60 * 1000);
     }
 }
 
@@ -113,7 +113,7 @@ async function startLottery(objectId) {
                 console.log(e);
             }
         }
-        await sleep(60 * 1000);
+        await sleep(20 * 60 * 1000);
     }
 }
 
