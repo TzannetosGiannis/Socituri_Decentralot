@@ -1,5 +1,3 @@
-require('custom-env').env('localhost');
-
 const express = require('express');
 const cors = require('cors');
 
