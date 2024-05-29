@@ -1,66 +1,129 @@
-import React, { useState } from 'react';
-import { NextSeo } from 'next-seo';
-import NftCard from '@/components/NftCard/NftCard';
+import React, { useEffect, useState } from "react";
+import { NextSeo } from "next-seo";
+import { useGetLottery } from "@/hooks/useGetLottery";
+import { useRouter } from "next/router";
+import { fetchCurrentLotteryAndCampaign } from "@/utils/fetchCurrentLotteryAndCampaign";
+import { useSuiClient } from "@mysten/dapp-kit";
+import NftCard from "@/components/NftCard/NftCard";
 
-const dummyNfts = [
-  {
-    image: 'https://via.placeholder.com/300x200',
-    endTime: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
-    cost: '0.51',
-    onBuyNow: () => alert('Buy Now clicked for NFT 1'),
-  },
-  {
-    image: 'https://via.placeholder.com/300x200',
-    endTime: new Date(new Date().getTime() + 10 * 1000),
-    cost: '1.25',
-    onBuyNow: () => alert('Buy Now clicked for NFT 2'),
-  },
-];
+const EPOCH_INTERVAL = 604_800_000;
 
 const NftMarketplace = () => {
-  const [nfts, setNfts] = useState(dummyNfts);
+  const suiClient = useSuiClient();
+  const router = useRouter();
+  const [nft, setNft] = useState(null);
+  const [lotteryId, setLotteryId] = useState(null);
+  const [campaignId, setCampaignId] = useState(null);
+
+  const { lottery } = useGetLottery(lotteryId);
+
+  useEffect(() => {
+    getEpochConfigNFT()
+      .then((epochConfigNFT) => {
+        console.log({ epochConfigNFT });
+        if (!epochConfigNFT) {
+          console.error("Epoch config NFT not found");
+          setNft(null);
+          return;
+        }
+        setNft(epochConfigNFT);
+      })
+      .catch((err) => {
+        console.error(err);
+        setNft(null);
+      });
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const resp = await fetchCurrentLotteryAndCampaign();
+      setLotteryId(resp.current_lottery_id);
+      setCampaignId(resp.campaign_id);
+    };
+
+    if (router.isReady) {
+      fetchData();
+    }
+  }, [router.isReady]);
+
+  const getEpochConfigNFT = async () => {
+    const previousEpoch = Math.floor(Date.now() / EPOCH_INTERVAL) - 1;
+
+    const epochConfigsTable = await suiClient
+      .getObject({
+        id: process.env.NEXT_PUBLIC_FEE_DISTRIBUTION,
+        options: {
+          showContent: true,
+          showType: true,
+          showDisplay: true,
+        },
+      })
+      .then((resp) => {
+        return resp.data.content.fields.config_per_epoch.fields.id.id;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    return suiClient
+      .getDynamicFieldObject({
+        parentId: epochConfigsTable,
+        name: { type: "u64", value: `${previousEpoch}` },
+      })
+      .then((resp) => {
+        const data = resp.data.content.fields.value.fields;
+        console.log(data);
+        const formatted = {
+          pricePerTicket: Number(data.price_per_ticket),
+          remainingTickets: Number(data.remaining_tickets),
+          totalTickets: Number(data.total_tickets),
+        };
+        return formatted;
+      });
+  };
 
   const seoConfig = {
-    title: 'NFT Marketplace',
-    description: 'Explore and buy unique NFTs in our marketplace. Find the best deals and rare collectibles here!',
+    title: "NFT Marketplace",
+    description:
+      "Explore and buy unique NFTs in our marketplace. Find the best deals and rare collectibles here!",
     openGraph: {
-      title: 'NFT Marketplace',
-      description: 'Explore and buy unique NFTs in our marketplace. Find the best deals and rare collectibles here!',
+      title: "NFT Marketplace",
+      description:
+        "Explore and buy unique NFTs in our marketplace. Find the best deals and rare collectibles here!",
       images: [
         {
-          url: 'https://example.com/nft-marketplace-image.jpg', // TODO: Add a real image URL
+          url: "https://example.com/nft-marketplace-image.jpg", // TODO: Add a real image URL
           width: 800,
           height: 600,
-          alt: 'NFT Marketplace Image', // TODO: Add a real image alt text
+          alt: "NFT Marketplace Image", // TODO: Add a real image alt text
         },
       ],
-      site_name: 'NFT Marketplace', // TODO: Add your site name
+      site_name: "NFT Marketplace", // TODO: Add your site name
     },
     additionalMetaTags: [
       {
-        name: 'keywords',
-        content: 'NFT, marketplace, buy, collectibles, digital art, blockchain',
+        name: "keywords",
+        content: "NFT, marketplace, buy, collectibles, digital art, blockchain",
       },
       {
-        name: 'author', // TODO: Add your company name
-        content: 'Your Company Name', // TODO: Add your company name
+        name: "author", // TODO: Add your company name
+        content: "Your Company Name", // TODO: Add your company name
       },
     ],
   };
 
+  console.log({ nft, lottery });
+
   return (
     <div className="bg-gray-800 min-h-screen p-4 flex flex-wrap justify-center">
       <NextSeo {...seoConfig} />
-      {nfts.map((nft, index) => (
-        <div key={index} className="m-4">
-          <NftCard
-            image={nft.image}
-            endTime={nft.endTime}
-            cost={nft.cost}
-            onBuyNow={nft.onBuyNow}
-          />
-        </div>
-      ))}
+      {!!nft && !!lottery && (
+        <NftCard
+          image="https://via.placeholder.com/300x200"
+          endTime={lottery.endDate}
+          cost={nft.pricePerTicket}
+        />
+      )}
     </div>
   );
 };

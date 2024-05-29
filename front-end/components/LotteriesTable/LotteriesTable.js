@@ -1,11 +1,12 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTicket, faTrophy, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { useCurrentAccount } from '@mysten/dapp-kit';
 
-const LotteriesTable = ({ lotteries, ownedTickets }) => {
-    const isWinningTicketOwned = (winningTicket) => {
-        return ownedTickets.some(ticket => ticket.ticketId === winningTicket);
-    };
+const LotteriesTable = ({ lotteries }) => {
+
+    console.log({ lotteries })
+    const currentAccount = useCurrentAccount();
 
     const handleClaimPrize = (round) => {
         console.log(`Claiming prize for round ${round}`);
@@ -13,7 +14,7 @@ const LotteriesTable = ({ lotteries, ownedTickets }) => {
     };
 
     const shouldShowActionColumn = lotteries.some(lottery => 
-        !lottery.claimed && isWinningTicketOwned(lottery.winning_ticket)
+        !lottery.claimed && lottery.winner_address === currentAccount?.address
     );
 
     return (
@@ -53,7 +54,7 @@ const LotteriesTable = ({ lotteries, ownedTickets }) => {
                                 </td>
                                 {shouldShowActionColumn && (
                                     <td className="py-3 px-4">
-                                        {!lottery.claimed && isWinningTicketOwned(lottery.winning_ticket) && (
+                                        {!lottery.claimed && lottery.winner_address === currentAccount?.address && (
                                             <button
                                                 onClick={() => handleClaimPrize(lottery.round)}
                                                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
