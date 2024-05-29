@@ -1,6 +1,6 @@
 // [TODO] understand if we need to find the new campaigns from events 
 // [TODO] or create them when they finish
-const campaings = require('../models/campaign');
+const campaigns = require('../models/campaign');
 const ticket = require('../models/ticket');
 const tickets = require('../models/ticket')
 
@@ -37,15 +37,19 @@ async function new_campaign(event) {
         information
     };
 
-    let n_camp = new campaings(newMongoObj);
+    let n_camp = new campaigns(newMongoObj);
     await n_camp.save();
     console.log({action:'new_campaign',campaign:event.parsedJson.id})
 }
 
 async function new_lottery(event) {
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    await sleep(5000);
     // identify the campaign
     const campaignId = event.parsedJson.campaign;
-    const specificCampaign = await campaings.findOne({campaignId});
+    const specificCampaign = await campaigns.findOne({campaignId});
     specificCampaign.previousLotteries.push({
         lottery_id:event.parsedJson.id,
         round: event.parsedJson.round,
@@ -62,25 +66,30 @@ async function new_lottery(event) {
 async function lottery_finished(event) {
 
     // identify the campaign from the lottery
-
-    const campaign = await campaings.findOne({
-        previousLotteries: {
-            $elemMatch: { lottery_id: event.parsedJson.id }
-        }
+    const winning_ticket = tickets.findOne({
+        lotteryId: event.parsedJson.id,
+        number: event.parsedJson.winner
     });
 
-    for(let i = 0; i < campaign.previousLotteries.length; i++) {
-        if (campaign.previousLotteries[i].lottery_id == event.parsedJson.id) {
-            campaign.previousLotteries[i].prize = event.parsedJson.raised;
-            campaign.previousLotteries[i].winning_ticket = event.parsedJson.winner;   
-            campaign.previousLotteries[i].protocol_fee = event.parsedJson.protocol_fee;  
-            const winning_ticket = await tickets.findOne({lotteryId:event.parsedJson.id,number:event.parsedJson.winner});
-            campaign.previousLotteries[i].winner_address = winning_ticket.address;
-            break;
+    // If the winning ticket is found, get the address
+    const winner_address = winning_ticket ? winning_ticket.address : null;
+
+    // Update the campaign's previousLotteries array with the new data
+    const updateResult = await campaigns.updateOne(
+        {
+            "previousLotteries.lottery_id": event.parsedJson.id
+        },
+        {
+            $set: {
+                "previousLotteries.$.prize": event.parsedJson.raised,
+                "previousLotteries.$.winning_ticket": event.parsedJson.winner,
+                "previousLotteries.$.protocol_fee": event.parsedJson.protocol_fee,
+                "previousLotteries.$.winner_address": winner_address
+            }
         }
-    }
+    );
+
     
-   await campaign.save();
    console.log({action:'lottery_ended',lottery_id:event.parsedJson.id,winner:event.parsedJson.winner });
 
 }
