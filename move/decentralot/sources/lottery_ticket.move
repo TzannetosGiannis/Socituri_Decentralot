@@ -4,6 +4,7 @@ module decentralot::lottery_ticket {
 
     friend decentralot::lottery;
     
+    // === Structs ===
     struct LotteryTicket has key, store {
         id: UID,
         campaign: ID,
@@ -25,6 +26,7 @@ module decentralot::lottery_ticket {
         object::delete(id);
     }
 
+    // === View functions ===
     public fun is_winning_ticket(ticket: &LotteryTicket, campaign: ID, number: u64, round: u64): bool {
         ticket.ticket_number == number && ticket.lottery_round == round && ticket.campaign == campaign
     }

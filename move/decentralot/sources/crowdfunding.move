@@ -1,4 +1,6 @@
 module decentralot::crowdfunding {
+    
+    // === Imports ===
     use sui::sui::SUI;
     use sui::tx_context::TxContext;
     use sui::balance::{Self, Balance};
@@ -8,18 +10,19 @@ module decentralot::crowdfunding {
 
     friend decentralot::lottery;
 
-    const MAX_FEE_RATE_BPS: u64 = 3_000; // 30%
-    const MAX_DEADLINE: u64 = 6 * 30 * 24 * 60 * 60 * 1000; // 6 months in ms
-
-    // ---- Errors
+    // === Errors ===
     const EFeeRateAboveMax: u64 = 1;
     const EDeadlineAboveMax: u64 = 2;
     const EFundingGoalReached: u64 = 3;
     const EFundingGoalNotReached: u64 = 4;
     const ENotYetExpired: u64 = 5;
     const EInvalidCFParam: u64 = 6;
-    
 
+    // === Constants ===
+    const MAX_FEE_RATE_BPS: u64 = 3_000; // 30%
+    const MAX_DEADLINE: u64 = 6 * 30 * 24 * 60 * 60 * 1000; // 6 months in ms
+    
+    // === Structs ===
     struct CrowdFunding has store {
         goal: u64,
         deadline: u64,
@@ -29,6 +32,7 @@ module decentralot::crowdfunding {
         raised: Balance<SUI>
     }
 
+    // === Public friend functions ===
     public(friend) fun new_crowdfunding(goal: u64, deadline: u64, beneficiary: address, fee_rate_bps: u64, project_url: String, clock: &Clock): CrowdFunding {
         assert!(goal > 0, EInvalidCFParam);
         assert!(deadline > 0, EInvalidCFParam);
@@ -63,7 +67,7 @@ module decentralot::crowdfunding {
         balance::join(&mut self.raised, coin::into_balance(input_coin));
     }
 
-    // ---- View functions
+    // === View functions ===
     public fun get_goal(self: &CrowdFunding): u64 {
         self.goal
     }

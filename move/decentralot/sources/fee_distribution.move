@@ -1,5 +1,7 @@
 #[allow(lint(self_transfer))]
 module decentralot::fee_distribution {
+
+    // === Imports ===
     use sui::sui::SUI;
     use sui::object::{Self, UID, ID};
     use sui::tx_context::{Self, TxContext};
@@ -13,19 +15,20 @@ module decentralot::fee_distribution {
     use decentralot::config::{Self, Config};
     use decentralot::incentive_treasury::{Self, IncentiveTreasury};
 
-
-    const FIFTY_SUI: u64 = 50_000000000; // 50 SUI
-    const ONE_WEEK: u64 = 604_800_000; // 1 week in ms
-
-    // ----- Errors
+    // === Errors ===
     const ENotEnoughTickets: u64 = 1;
     const EInsufficientPayment: u64 = 2;
     const ECannotBuyTicket: u64 = 3;
     const ECannotClaimTicketsForEpoch: u64 = 4;
     const ENoTicketsToClaim: u64 = 5;
     const EEpochDoesNotExist: u64 = 6;
+
+    // === Constants ===
+    const FIFTY_SUI: u64 = 50_000000000; // 50 SUI
+    // @TODO Change this for mainnet
+    const ONE_WEEK: u64 = 604_800_000; // 1 week in ms
     
-    
+    // === Structs ===
     struct FeeDistribution has key, store {
         id: UID,
         bank: Balance<SUI>,
@@ -52,7 +55,7 @@ module decentralot::fee_distribution {
         amount: u64
     }
 
-    // ------- Events
+    // === Events ===
     struct AdvancedEpoch has copy, drop {
         epoch: u64,
         last_epoch_fees: u64,
@@ -91,6 +94,7 @@ module decentralot::fee_distribution {
         amount: u64
     }
 
+    // === Public functions ===
     fun init(ctx: &mut TxContext) {
         let fd = FeeDistribution {
             id: object::new(ctx),
@@ -249,12 +253,12 @@ module decentralot::fee_distribution {
     }
 
 
-    // ----- View functions
+    // === View functions ===
     public fun current_epoch(clock: &Clock): u64 {
         clock::timestamp_ms(clock) / ONE_WEEK
     }
 
-    // ----- Internal functions
+    // === Private functions ===
     fun new_epoch_cfg(epoch_fees: u64, redeem_price_per_ticket: u64): EpochConfig {
         let total_tickets = epoch_fees / FIFTY_SUI;
         if (total_tickets < 50) {

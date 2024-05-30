@@ -1,4 +1,6 @@
 module decentralot::incentive_treasury {
+
+    // === Imports ===
     use sui::sui::SUI;
     use sui::event;
     use sui::transfer;

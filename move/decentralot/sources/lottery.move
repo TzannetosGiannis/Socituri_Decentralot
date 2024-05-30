@@ -26,10 +26,8 @@ module decentralot::lottery {
     use decentralot::lottery_ticket::{Self, LotteryTicket};
     use decentralot::fee_distribution::{Self, FeeDistribution};
 
-    const BPS_MAX: u64 = 10_000;
 
-    const REFUND_DFIELD_NAME: vector<u8> = b"refund";
-
+    // === Errors ===
     const ECannotRefundNonCFCampaign: u64 = 1;
     const EActiveLotteryExists: u64 = 2;
     const ECrowdfundingDeadlinePassed: u64 = 3;
@@ -45,23 +43,34 @@ module decentralot::lottery {
     const ECampaignMissmatch: u64 = 13;
     const ELotteryNotEmpty: u64 = 14;
 
+    // === Constants ===
+    const BPS_MAX: u64 = 10_000;
+    const REFUND_DFIELD_NAME: vector<u8> = b"refund";
+
+    // === Structs ===
     struct Campaign has key {
         id: UID,
+        // total tickets bought for this campaign
         total_tickets: u64,
+        // duration of each campaign's lottery in ms
         duration: u64,
+        // fixed ticket's price for each campaign's lottery
         ticket_price: u64,
+        // current lottery round
         round: u64,
+        // latest lottery for this campaign
         latest_lotery: Option<ID>,
+        // Crowdfunding information for campaign
         crowdfunding: Option<CrowdFunding>
     }
 
     struct Lottery has key, store {
         id: UID,
-        // Project this lottery belongs to
-        // bank for the lottery
+        // campaign this lottery belongs to
         campaign: ID,
+        // bank for the lottery
         bank: Balance<SUI>,
-        // incentives for the lottery
+        // incentives added in this lottery
         incentives: u64,
         // fixed ticket's price
         ticket_price: u64,
@@ -71,12 +80,13 @@ module decentralot::lottery {
         end_date: u64,
         // Lottery's lottery round
         round: u64,
+        // Winning ticket
         winner: Option<u64>
     }
 
-    // ----- Events
+    // === Events ===
 
-    // If the campaign is not Crowdfunding, last 4 fields will be empty.
+    /// @notice If the campaign is not Crowdfunding, last 4 fields will be empty.
     struct NewCampaign has copy, drop {
         id: ID,
         duration: u64,
@@ -134,8 +144,7 @@ module decentralot::lottery {
         amount: u64,
     }
 
-
-    // ------- New lotteries
+    // === Admin Functions ===
     public fun new_campaign(_: &AdminCap, cfg: &Config, ticket_price: u64, duration: u64, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
 
@@ -219,6 +228,8 @@ module decentralot::lottery {
         transfer::share_object(campaign);
         transfer::public_share_object(lottery);
     }
+
+    // === Public Functions ===
 
     public fun new_round(cfg: &Config, campaign: &mut Campaign, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
@@ -503,7 +514,7 @@ module decentralot::lottery {
         });
     }
 
-    // ----- View Functions
+    // === View Functions ===
     public fun lottery_campaign_id(lottery: &Lottery): ID {
         lottery.campaign
     }
@@ -536,7 +547,7 @@ module decentralot::lottery {
         option::is_some(&campaign.crowdfunding)
     }
 
-    // ----- Private Functions
+    // === Private functions ===
     fun new_lottery(ticket_price: u64, end_date: u64, round: u64, campaign_id: ID, ctx: &mut TxContext): Lottery {
         Lottery {
             id: object::new(ctx),

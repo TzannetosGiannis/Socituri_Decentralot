@@ -1,23 +1,25 @@
 module decentralot::config {
+    
+    // === Imports ===
     use sui::object::{Self, UID};
     use sui::tx_context::{Self, TxContext};
     use sui::event::emit;
     use sui::transfer;
 
+    // === Errors ===
+    const EFeeAboveMax: u64 = 1;
+    const ERefundPctAboveMax: u64 = 2;
+    const EPackageVersionMissmatch: u64 = 3;
+
+    // === Constants ===
     const MAX_FEE_BPS: u64 = 300; // 3%
     const INIT_FEE_BPS: u64 = 200; // 2%
-
     const MAX_REFUND_PCT: u64 = 9000; // 90%
     const INIT_REFUND_PCT: u64 = 7000; // 70%
 
     const VERSION: u64 = 1;
 
-    // ----- Errors
-    const EFeeAboveMax: u64 = 1;
-    const ERefundPctAboveMax: u64 = 2;
-    const EPackageVersionMissmatch: u64 = 3;
-
-
+    // === Structs ===
     struct AdminCap has key, store {
         id: UID,
     }
@@ -29,7 +31,7 @@ module decentralot::config {
         package_version: u64,
     }
 
-    // ----- Events
+    // === Events ===
     struct UpdateProtocolFeeRate has copy, drop {
         old_fee_bps: u64,
         new_fee_bps: u64,
@@ -44,6 +46,7 @@ module decentralot::config {
         new_version: u64,
     }
 
+    // === Public Functions ===
     fun init(ctx: &mut TxContext) {
         let config = Config {
             id: object::new(ctx),
@@ -62,6 +65,7 @@ module decentralot::config {
         transfer::share_object(config);
     }
 
+    // === Admin Functions ===
     public fun set_protocol_fee_bps(_: &AdminCap, config: &mut Config, new_fee_bps: u64) {
         assert_version(config);
 
@@ -100,7 +104,7 @@ module decentralot::config {
         assert!(VERSION == config.package_version, EPackageVersionMissmatch);
     }
 
-    // ----- View functions
+    // === View Functions ===
     public fun protocol_fee_bps(config: &Config): u64 {
         config.protocol_fee_bps
     }

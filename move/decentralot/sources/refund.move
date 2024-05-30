@@ -21,8 +21,6 @@ module decentralot::refund {
     public(friend) fun refund(refund: &mut Refund, ctx: &mut TxContext): Coin<SUI> {
         coin::take(&mut refund.bank, refund.amount_per_ticket, ctx)
     }
-
-    // ----- View Functions
     
     public fun amount_per_ticket(refund: &Refund): u64 {
         refund.amount_per_ticket
