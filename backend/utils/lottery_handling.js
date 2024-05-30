@@ -127,15 +127,23 @@ async function newRoundLottery() {
                 if(camps[i].previousLotteries[j].winning_ticket == -1 ) {
                     try {
                         await __end__lottery(camps[i].campaignId,camps[i].previousLotteries[j].lottery_id)
-                        await __start__lottery(camps[i].campaignId);
+                        
                     } catch (e) {
                         console.log(e);
                     }
+
+                    try {
+                        await __start__lottery(camps[i].campaignId);
+                        
+                    } catch (e) {
+                        console.log(e);
+                    }
+                    
                     break;
                 }
             }
         }
-        await sleep(2 * 60 * 1000);
+        await sleep(40 * 1000);
     }
 }
 

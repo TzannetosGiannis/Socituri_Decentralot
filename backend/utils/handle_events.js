@@ -71,6 +71,8 @@ async function lottery_finished(event) {
         number: event.parsedJson.winner
     });
 
+    console.log({winning_ticket});
+
     // If the winning ticket is found, get the address
     const winner_address = winning_ticket ? winning_ticket.address : null;
     const winner_ticket_id = winning_ticket ? winning_ticket.ticketId : null;
@@ -83,7 +85,7 @@ async function lottery_finished(event) {
         },
         {
             $set: {
-                "previousLotteries.$.prize": event.parsedJson.raised,
+                "previousLotteries.$.prize": event.parsedJson.prize_pool,
                 "previousLotteries.$.campaign_id": winner_ticket_campaign,
                 "previousLotteries.$.winning_ticket": event.parsedJson.winner,
                 "previousLotteries.$.winning_ticket_id": winner_ticket_id,
