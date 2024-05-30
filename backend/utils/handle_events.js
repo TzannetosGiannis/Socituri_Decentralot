@@ -89,23 +89,27 @@ async function lottery_finished(event) {
         }
     );
 
-    
+
    console.log({action:'lottery_ended',lottery_id:event.parsedJson.id,winner:event.parsedJson.winner });
 
 }
 
 
-async function campaign_started(event) {
- // create a new entry in the indexed database that represents this action   
-}
-
 async function lottery_claimed(event) {
-    // identify the campaign we are refering to
 
-    // identify round that settled 
-
-    // modify it in the database
-
+    // Update the campaign's previousLotteries array with the new data
+    const updateResult = await campaigns.updateOne(
+        {
+            "previousLotteries.lottery_id": event.parsedJson.lottery
+        },
+        {
+            $set: {
+                "previousLotteries.$.claimed": true
+            }
+        }
+    );
+    
+    console.log({action:'lottery claimed',lottery:event.parsedJson.lottery,winner:event.parsedJson.winner})
 }
 
 
@@ -113,5 +117,4 @@ module.exports.buy_ticket = buy_ticket;
 module.exports.new_campaign = new_campaign;
 module.exports.new_lottery = new_lottery;
 module.exports.lottery_finished = lottery_finished;
-module.exports.campaign_started = campaign_started;
 module.exports.lottery_claimed = lottery_claimed;
