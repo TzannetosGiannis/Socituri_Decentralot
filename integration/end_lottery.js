@@ -11,13 +11,12 @@ const main = () => {
 
   const tx = new TransactionBlock();
   tx.moveCall({
-    target: `${process.env.PACKAGE_ID}::lottery::end_lottery_no_random`,
+    target: `${process.env.PACKAGE_ID}::lottery::end_lottery`,
     arguments: [
       tx.object(process.env.CONFIG),
       tx.object(process.env.CAMPAIGN_ID),
       tx.object(process.env.LOTTERY_ID),
       tx.object(process.env.FEE_DISTRIBUTION),
-      tx.pure("0"), // randomness not there yet
       tx.object(SUI_CLOCK_OBJECT_ID),
     ],
   });
