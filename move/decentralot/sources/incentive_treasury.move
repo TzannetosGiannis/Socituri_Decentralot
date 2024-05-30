@@ -75,7 +75,7 @@ module decentralot::incentive_treasury {
             amount: amount
         });
         
-        balance::split(&mut incentives.bank, amount)
+        balance::withdraw_all(&mut incentives.bank)
 
     }
 
