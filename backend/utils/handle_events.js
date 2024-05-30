@@ -73,6 +73,8 @@ async function lottery_finished(event) {
 
     // If the winning ticket is found, get the address
     const winner_address = winning_ticket ? winning_ticket.address : null;
+    const winner_ticket_id = winning_ticket ? winning_ticket.ticketId : null;
+    const winner_ticket_campaign = winning_ticket ? winning_ticket.campaignId : null;
     
     // Update the campaign's previousLotteries array with the new data
     const updateResult = await campaigns.updateOne(
@@ -82,7 +84,9 @@ async function lottery_finished(event) {
         {
             $set: {
                 "previousLotteries.$.prize": event.parsedJson.raised,
+                "previousLotteries.$.campaign_id": winner_ticket_campaign,
                 "previousLotteries.$.winning_ticket": event.parsedJson.winner,
+                "previousLotteries.$.winning_ticket_id": winner_ticket_id,
                 "previousLotteries.$.protocol_fee": event.parsedJson.protocol_fee,
                 "previousLotteries.$.winner_address": winner_address
             }

@@ -5,11 +5,12 @@ import { useCurrentAccount } from '@mysten/dapp-kit';
 
 const LotteriesTable = ({ lotteries }) => {
 
-    console.log({ lotteries })
+    
     const currentAccount = useCurrentAccount();
 
-    const handleClaimPrize = (round) => {
-        console.log(`Claiming prize for round ${round}`);
+    const handleClaimPrize = (lottery) => {
+        console.log(lottery)
+        console.log(`Claiming prize for round ${lottery.round}`);
         // Implement the logic to claim the prize here
     };
 
@@ -56,7 +57,7 @@ const LotteriesTable = ({ lotteries }) => {
                                     <td className="py-3 px-4">
                                         {!lottery.claimed && lottery.winner_address === currentAccount?.address && (
                                             <button
-                                                onClick={() => handleClaimPrize(lottery.round)}
+                                                onClick={() => handleClaimPrize(lottery)}
                                                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
                                             >
                                                 Claim Prize
