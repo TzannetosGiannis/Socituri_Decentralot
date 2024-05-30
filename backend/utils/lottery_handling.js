@@ -117,5 +117,48 @@ async function startLottery(objectId) {
     }
 }
 
+
+async function newRoundLottery() {
+    
+    while (true) {
+        const camps = await campaigns.find({isCrowdFunding:false});
+
+        for(let i = 0; i < camps.length; i++ ) {
+            for (let j = 0; j < camps[i].previousLotteries.length; j++) {
+                if(camps[i].previousLotteries[j].winning_ticket == -1 ) {
+                    try {
+                        await __end__lottery(camps[i].campaignId,camps[i].previousLotteries[j].lottery_id)
+                        await __start__lottery(camps[i].campaignId);
+                    } catch (e) {
+                        console.log(e);
+                    }
+                    break;
+                }
+            }
+        }
+        await sleep(20 * 60 * 1000);
+    }
+}
+
+async function startLottery(objectId) {
+    while (true) {
+        const camps = await campaigns.find({isCrowdFunding:false});
+
+        for(let i = 0; i < camps.length; i++ ) {
+            try {
+                await __start__lottery(camps[i].campaignId);
+            } catch (e) {
+                console.log('campaign id =>',camps[i].campaignId,' failed to start')
+                // if(e.message.includes('Some("end_lottery_no_random") }, 7)')) {
+                //     console.log('reason => already finished');
+                // }
+                console.log(e);
+            }
+        }
+        await sleep(20 * 60 * 1000);
+    }
+}
+
 module.exports.endLottery = endLottery;
 module.exports.startLottery = startLottery;
+module.exports.newRoundLottery = newRoundLottery;

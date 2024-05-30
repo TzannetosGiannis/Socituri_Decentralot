@@ -1,14 +1,13 @@
 require('custom-env').env('localhost');
 const connectMongo = require('./utils/connectMongo');
 const connectSUI = require('./utils/connectSUI');
-const {endLottery,startLottery} = require('./utils/lottery_handling');
+const {newRoundLottery} = require('./utils/lottery_handling');
 
 (async () => {
   await connectMongo();
   connectSUI();
   
-  endLottery();
-  startLottery();
+  newRoundLottery();
   
   const app = require('./app');
 
