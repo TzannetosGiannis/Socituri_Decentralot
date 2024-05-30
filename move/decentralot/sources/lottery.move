@@ -401,7 +401,6 @@ module decentralot::lottery {
         };
     }
 
-    // If lottery.round < 2, input old_lottery == lottery
     public fun claim_prize(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, ticket: LotteryTicket, ctx: &mut TxContext){
         config::assert_version(cfg);
 
