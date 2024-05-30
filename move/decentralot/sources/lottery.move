@@ -110,6 +110,7 @@ module decentralot::lottery {
         winner: u64,
         protocol_fee: u64,
         raised: u64,
+        prize_pool: u64,
     }
 
     struct CampaignCompleted has copy, drop {
@@ -303,6 +304,7 @@ module decentralot::lottery {
             winner,
             protocol_fee: protocol_fee_amount,
             raised: cf_amount,
+            prize_pool: balance::value(&lottery.bank),
         });
     }
 
@@ -340,6 +342,7 @@ module decentralot::lottery {
             winner,
             protocol_fee: protocol_fee_amount,
             raised: cf_amount,
+            prize_pool: balance::value(&lottery.bank),
         });
     }
 
