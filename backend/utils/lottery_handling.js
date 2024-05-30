@@ -43,13 +43,12 @@ async function __end__lottery(campaign_id,lottery_id) {
     
     const tx = new TransactionBlock();
     tx.moveCall({
-        target: `${process.env.package_id}::lottery::end_lottery_no_random`,
+        target: `${process.env.package_id}::lottery::end_lottery`,
         arguments: [
         tx.object(process.env.CONFIG),
         tx.object(campaign_id),
         tx.object(lottery_id),
         tx.object(process.env.FEE_DISTRIBUTION),
-        tx.pure("0"), // randomness not there yet
         tx.object(SUI_CLOCK_OBJECT_ID),
         ],
     });
@@ -136,7 +135,7 @@ async function newRoundLottery() {
                 }
             }
         }
-        await sleep(20 * 60 * 1000);
+        await sleep(2 * 60 * 1000);
     }
 }
 
