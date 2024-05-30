@@ -108,7 +108,7 @@ module decentralot::fee_distribution {
         config::assert_version(cfg);
 
         let curr_epoch = current_epoch(clock);
-        if (curr_epoch == fd.last_recorded_epoch) {
+        if (curr_epoch == fd.last_recorded_epoch || fd.current_epoch_fees == 0) {
             return
         };
         
