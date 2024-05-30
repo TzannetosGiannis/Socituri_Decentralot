@@ -11,7 +11,7 @@ const {newRoundLottery} = require('./utils/lottery_handling');
   
   const app = require('./app');
 
-  const PORT = process.env.port || 3001;
+  const PORT = process.env.port || 3010;
   app.listen(PORT,'0.0.0.0', () => {
     console.log(`REST API running at http://localhost:${ PORT }/`);
   });

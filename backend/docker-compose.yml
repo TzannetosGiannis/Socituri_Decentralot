@@ -22,7 +22,7 @@ services:
       dockerfile: Dockerfile
       context: .
     ports:
-      - 3001:3001
+      - 3010:3010
     
 volumes:
   mongodb_data_container:
