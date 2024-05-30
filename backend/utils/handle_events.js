@@ -66,14 +66,14 @@ async function new_lottery(event) {
 async function lottery_finished(event) {
 
     // identify the campaign from the lottery
-    const winning_ticket = tickets.findOne({
+    const winning_ticket = await tickets.findOne({
         lotteryId: event.parsedJson.id,
         number: event.parsedJson.winner
     });
 
     // If the winning ticket is found, get the address
     const winner_address = winning_ticket ? winning_ticket.address : null;
-
+    
     // Update the campaign's previousLotteries array with the new data
     const updateResult = await campaigns.updateOne(
         {
