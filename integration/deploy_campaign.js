@@ -17,7 +17,7 @@ const main = () => {
       tx.object(process.env.ADMIN_CAP),
       tx.object(process.env.CONFIG),
       tx.pure("1000"),
-      tx.pure("100000000000000"),
+      tx.pure("1000"),
       tx.pure(SUI_CLOCK_OBJECT_ID),
     ],
   });
