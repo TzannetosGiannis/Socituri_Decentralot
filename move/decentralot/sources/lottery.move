@@ -13,9 +13,9 @@ module decentralot::lottery {
     use std::option::{Self, Option};
     use std::string::{String, utf8};
 
-    use sui::random::Random;
 
-    // @TODO Remove when there is native on-chain randomness on testnet 
+    // TODO Uncomment when there is native on-chain randomness on testnet 
+    // use sui::random::Random;
     use std::hash::sha2_256;
     use std::vector;
 
@@ -261,7 +261,7 @@ module decentralot::lottery {
         transfer::public_share_object(new_lottery);
     }
 
-    entry fun end_lottery(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, _r: &Random, clock: &Clock, ctx: &mut TxContext){
+    entry fun end_lottery(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
         
         assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
@@ -294,44 +294,6 @@ module decentralot::lottery {
         // };
 
         let winner = temp_prng(lottery.total_tickets, ctx);
-
-        lottery.winner = option::some(winner);
-        campaign.latest_lotery = option::none();
-        campaign.total_tickets = campaign.total_tickets + lottery.total_tickets;
-
-        event::emit(LotteryEnded{
-            id: object::id(lottery),
-            winner,
-            protocol_fee: protocol_fee_amount,
-            raised: cf_amount,
-            prize_pool: balance::value(&lottery.bank),
-        });
-    }
-
-    public fun end_lottery_no_random(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, winner: u64, clock: &Clock, ctx: &mut TxContext){
-        config::assert_version(cfg);
-        
-        assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
-
-        assert!(lottery.end_date < clock::timestamp_ms(clock), ELotteryStillActive);
-        assert!(option::is_none(&lottery.winner), ELotteryAlreadyEnded);
-
-        // Protocol fee is only claimed on the tickets - not the incentives
-        let protocol_fee_amount = (balance::value(&lottery.bank) - lottery.incentives) *  config::protocol_fee_bps(cfg) / BPS_MAX;
-        
-        let protocol_balance = balance::split(&mut lottery.bank, protocol_fee_amount);
-        fee_distribution::add_fees(cfg, fd, protocol_balance, clock);
-
-        let cf_amount = 0;
-
-        if (is_cf_campaign(campaign)){
-            let cf = option::borrow(&campaign.crowdfunding);
-            let keep_rate = crowdfunding::keep_rate_bps(cf);
-            cf_amount = ((balance::value(&lottery.bank) - lottery.incentives) * keep_rate) / BPS_MAX;
-
-            let cf_coin = coin::take(&mut lottery.bank, cf_amount, ctx);
-            crowdfunding::add_funds(option::borrow_mut(&mut campaign.crowdfunding), cf_coin);
-        };
 
         lottery.winner = option::some(winner);
         campaign.latest_lotery = option::none();
