@@ -5,9 +5,9 @@ const {newRoundLottery} = require('./utils/lottery_handling');
 
 (async () => {
   await connectMongo();
-  // connectSUI();
+  connectSUI();
   
-  // newRoundLottery();
+  newRoundLottery();
   
   const app = require('./app');
 
