@@ -1,3 +1,4 @@
+
 import {
   useSignAndExecuteTransactionBlock,
 } from "@mysten/dapp-kit";
@@ -89,7 +90,7 @@ const NftCard = ({ image, endTime, cost }) => {
   // }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden w-72">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden w-72 max-h-[500px]">
       <img src={image} alt="NFT" className="w-full h-[200px] object-cover" />
       <div className="p-4">
         <div className="text-center mb-2">

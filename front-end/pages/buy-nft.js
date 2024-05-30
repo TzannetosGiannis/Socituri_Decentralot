@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { fetchCurrentLotteryAndCampaign } from "@/utils/fetchCurrentLotteryAndCampaign";
 import { useSuiClient } from "@mysten/dapp-kit";
 import NftCard from "@/components/NftCard/NftCard";
+import { OwnedTickets } from "@/components/Redeem/OwnedTickets";
 
 const EPOCH_INTERVAL = 604_800_000;
 
@@ -115,7 +116,7 @@ const NftMarketplace = () => {
   console.log({ nft, lottery });
 
   return (
-    <div className="bg-gray-800 min-h-screen p-4 flex flex-wrap justify-center">
+    <div className="bg-gray-800 min-h-screen p-4 flex flex-col items-center gap-y-[24px]">
       <NextSeo {...seoConfig} />
       {!!nft && !!lottery && (
         <NftCard
@@ -124,6 +125,7 @@ const NftMarketplace = () => {
           cost={nft.pricePerTicket}
         />
       )}
+      <OwnedTickets />
     </div>
   );
 };
