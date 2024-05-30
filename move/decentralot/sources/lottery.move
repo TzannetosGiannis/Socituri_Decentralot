@@ -268,9 +268,9 @@ module decentralot::lottery {
         if (is_cf_campaign(campaign)){
             let cf = option::borrow(&campaign.crowdfunding);
             let keep_rate = crowdfunding::keep_rate_bps(cf);
-            let keep = ((balance::value(&lottery.bank) - lottery.incentives) * keep_rate) / BPS_MAX;
+            cf_amount = ((balance::value(&lottery.bank) - lottery.incentives) * keep_rate) / BPS_MAX;
 
-            let cf_coin = coin::take(&mut lottery.bank, keep, ctx);
+            let cf_coin = coin::take(&mut lottery.bank, cf_amount, ctx);
             crowdfunding::add_funds(option::borrow_mut(&mut campaign.crowdfunding), cf_coin);
         };
 
@@ -314,9 +314,9 @@ module decentralot::lottery {
         if (is_cf_campaign(campaign)){
             let cf = option::borrow(&campaign.crowdfunding);
             let keep_rate = crowdfunding::keep_rate_bps(cf);
-            let keep = ((balance::value(&lottery.bank) - lottery.incentives) * keep_rate) / BPS_MAX;
+            cf_amount = ((balance::value(&lottery.bank) - lottery.incentives) * keep_rate) / BPS_MAX;
 
-            let cf_coin = coin::take(&mut lottery.bank, keep, ctx);
+            let cf_coin = coin::take(&mut lottery.bank, cf_amount, ctx);
             crowdfunding::add_funds(option::borrow_mut(&mut campaign.crowdfunding), cf_coin);
         };
 
