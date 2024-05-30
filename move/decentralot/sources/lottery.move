@@ -259,8 +259,10 @@ module decentralot::lottery {
 
         // Protocol fee is only claimed on the tickets - not the incentives
         let protocol_fee_amount = (balance::value(&lottery.bank) - lottery.incentives) *  config::protocol_fee_bps(cfg) / BPS_MAX;
-        let protocol_coin = coin::take(&mut lottery.bank, protocol_fee_amount, ctx);
-        fee_distribution::add_fees(cfg, fd, protocol_coin, clock);
+        
+        let protocol_balance = balance::split(&mut lottery.bank, protocol_fee_amount);
+        fee_distribution::add_fees(cfg, fd, protocol_balance, clock);
+        
         let cf_amount = 0;
 
         if (is_cf_campaign(campaign)){
@@ -303,8 +305,10 @@ module decentralot::lottery {
 
         // Protocol fee is only claimed on the tickets - not the incentives
         let protocol_fee_amount = (balance::value(&lottery.bank) - lottery.incentives) *  config::protocol_fee_bps(cfg) / BPS_MAX;
-        let protocol_coin = coin::take(&mut lottery.bank, protocol_fee_amount, ctx);
-        fee_distribution::add_fees(cfg, fd, protocol_coin, clock);
+        
+        let protocol_balance = balance::split(&mut lottery.bank, protocol_fee_amount);
+        fee_distribution::add_fees(cfg, fd, protocol_balance, clock);
+
         let cf_amount = 0;
 
         if (is_cf_campaign(campaign)){
@@ -482,20 +486,20 @@ module decentralot::lottery {
         })
     }
 
-    public fun pull_treasury_incentives(cfg: &Config, lottery: &mut Lottery, treasury: &mut IncentiveTreasury, clock: &Clock, ctx: &mut TxContext){
+    public fun pull_treasury_incentives(cfg: &Config, lottery: &mut Lottery, treasury: &mut IncentiveTreasury, clock: &Clock){
         config::assert_version(cfg);
         assert!(clock::timestamp_ms(clock) < lottery.end_date, ELotteryExpired);
 
-        let incentive_coin = incentive_treasury::pull_incentives(treasury, lottery.campaign, ctx);
-        let coin_value = coin::value(&incentive_coin);
+        let incentives = incentive_treasury::pull_incentives(treasury, lottery.campaign);
+        let amount = balance::value(&incentives);
 
-        balance::join(&mut lottery.bank, coin::into_balance(incentive_coin));
-        lottery.incentives = lottery.incentives + coin_value;
+        balance::join(&mut lottery.bank, incentives);
+        lottery.incentives = lottery.incentives + amount;
         
         event::emit(IncentivesAdded{
             campaign: lottery.campaign,
             lottery: object::id(lottery),
-            amount: coin_value,
+            amount,
         });
     }
 

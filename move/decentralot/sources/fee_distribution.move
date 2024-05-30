@@ -150,13 +150,13 @@ module decentralot::fee_distribution {
         }); 
     }
 
-    public fun add_fees(cfg: &Config, fd: &mut FeeDistribution, fee_coin: Coin<SUI>, clock: &Clock){
+    public fun add_fees(cfg: &Config, fd: &mut FeeDistribution, fee_balance: Balance<SUI>, clock: &Clock){
         config::assert_version(cfg);
         advance_epoch(cfg, fd, clock);
         
-        let amount = coin::value(&fee_coin);
+        let amount = balance::value(&fee_balance);
         fd.current_epoch_fees = fd.current_epoch_fees + amount;
-        balance::join(&mut fd.bank, coin::into_balance(fee_coin));
+        balance::join(&mut fd.bank, fee_balance);
         
         event::emit(FeesAdded{
             epoch: current_epoch(clock),

@@ -64,7 +64,7 @@ module decentralot::incentive_treasury {
         transfer::share_object(incentive_treasury);
     }
 
-    public(friend) fun pull_incentives(incentives: &mut IncentiveTreasury, campaign_id: ID, ctx: &mut TxContext) : Coin<SUI> {
+    public(friend) fun pull_incentives(incentives: &mut IncentiveTreasury, campaign_id: ID) : Balance<SUI> {
         let amount = balance::value(&incentives.bank);
         assert!(amount > incentives.min_amount, ECollectedIncentivesBelowMin);
         assert!(option::is_some(&incentives.campaign_to_incentivize), ENoCampaignToIncentivize);
@@ -75,7 +75,7 @@ module decentralot::incentive_treasury {
             amount: amount
         });
         
-        coin::take(&mut incentives.bank, amount, ctx)
+        balance::split(&mut incentives.bank, amount)
 
     }
 
