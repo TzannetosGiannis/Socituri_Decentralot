@@ -2,16 +2,46 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTicket, faTrophy, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useSignAndExecuteTransactionBlock } from "@mysten/dapp-kit";
+import { TransactionBlock } from "@mysten/sui.js/transactions";
 
 const LotteriesTable = ({ lotteries }) => {
 
-    
+    const { mutateAsync: signAndExecuteTransactionBlock } =
+        useSignAndExecuteTransactionBlock();
     const currentAccount = useCurrentAccount();
 
     const handleClaimPrize = (lottery) => {
-        console.log(lottery)
-        console.log(`Claiming prize for round ${lottery.round}`);
         // Implement the logic to claim the prize here
+        console.log(`Claiming prize for round ${lottery.round}`);
+        console.log(lottery)
+    
+        const tx = new TransactionBlock();
+
+        tx.moveCall({
+            target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::lottery::claim_prize`,
+            arguments: [
+              tx.object(process.env.NEXT_PUBLIC_CONFIG_ID),
+              tx.object(lottery.campaign_id),
+              tx.object(lottery.lottery_id),
+              tx.object(lottery.winning_ticket_id),
+            ],
+          });
+        
+        signAndExecuteTransactionBlock({
+            transactionBlock: tx,
+            options: {
+              showEffects: true,
+            },
+          })
+            .then((resp) => {
+              console.log(resp);
+              !!onSuccess && onSuccess();
+            })
+            .catch((err) => {
+              console.error(err);
+            });
+        
     };
 
     const shouldShowActionColumn = lotteries.some(lottery => 
