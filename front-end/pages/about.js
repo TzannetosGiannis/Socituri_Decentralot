@@ -1,9 +1,10 @@
 import React from 'react';
 import { teamMembers } from '@/data/teamMembers';
+import TestnetContractInfo from '@/components/TestnetContractInfo/TestnetContractInfo';
 
 const AboutPage = () => {
     return (
-        <div className="bg-gray-800 text-white py-24 flex flex-col">
+        <><div className="bg-gray-800 text-white py-24 flex flex-col">
             <div className="container mx-auto px-4 flex-grow">
                 <h1 className="text-4xl font-bold text-center mb-10">Meet Our Team</h1>
                 <div className="flex flex-wrap justify-center gap-y-4">
@@ -25,6 +26,10 @@ const AboutPage = () => {
                 </div>
             </div>
         </div>
+        <div className="container mx-auto px-4 mb-8 mt-12">
+            <TestnetContractInfo />    
+        </div>
+        </>
     );
 };
 
