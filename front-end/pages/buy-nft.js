@@ -82,7 +82,7 @@ const NftMarketplace = () => {
         return formatted;
       }).catch((error) => {
         const formatted = {
-          pricePerTicket: 0.1,
+          pricePerTicket: 100000000,
           remainingTickets: 50,
           totalTickets: 50,
         };

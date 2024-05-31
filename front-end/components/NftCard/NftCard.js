@@ -42,10 +42,10 @@ const NftCard = ({ image, endTime, cost }) => {
   }, []);
 
   const handleBuy = () => {
-    const amount = 2;
+    const amount = 1;
 
     const tx = new TransactionBlock();
-    const coin = tx.splitCoins(tx.gas, [2 * Number(cost)]);
+    const coin = tx.splitCoins(tx.gas, [Number(cost)]);
 
     console.log({
       config: process.env.NEXT_PUBLIC_CONFIG_ID,
@@ -99,7 +99,7 @@ const NftCard = ({ image, endTime, cost }) => {
         </div>
         <div className="text-center mb-4">
           <p className="text-lg font-semibold">Current price:</p>
-          <p className="text-2xl font-bold text-blue-600">{cost} SUI</p>
+          <p className="text-2xl font-bold text-blue-600">{cost /1000000000} SUI</p>
         </div>
         <button
           onClick={handleBuy}
