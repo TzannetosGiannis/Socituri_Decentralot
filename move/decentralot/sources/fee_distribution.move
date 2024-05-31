@@ -18,14 +18,13 @@ module decentralot::fee_distribution {
     // === Errors ===
     const ENotEnoughTickets: u64 = 1;
     const EInsufficientPayment: u64 = 2;
-    const ECannotBuyTicket: u64 = 3;
+    const EEpochDoesNotExist: u64 = 3;
     const ECannotClaimTicketsForEpoch: u64 = 4;
     const ENoTicketsToClaim: u64 = 5;
-    const EEpochDoesNotExist: u64 = 6;
 
     // === Constants ===
     const FIFTY_SUI: u64 = 50_000000000; // 50 SUI
-    // @TODO Change this for mainnet
+    // TODO Change this for mainnet
     const ONE_WEEK: u64 = 600_000; // 1 week in ms
     
     // === Structs ===
@@ -175,7 +174,12 @@ module decentralot::fee_distribution {
         // During epoch N, one buys tickets on epoch N-1 to be redeemed on epoch N+1
         let curr_epoch = current_epoch(clock);
         let prev_epoch = curr_epoch - 1;
-        assert!(table::contains(&fd.config_per_epoch, prev_epoch), ECannotBuyTicket);
+
+        // If prev_epoch config does not exist, set it to default
+        if (!table::contains(&fd.config_per_epoch, prev_epoch)) {
+            table::add(&mut fd.config_per_epoch, prev_epoch, default_epoch_cfg());
+        };
+        
         let epoch_cfg = table::borrow_mut(&mut fd.config_per_epoch, prev_epoch);
 
         let price = epoch_cfg.price_per_ticket * amount;
@@ -272,6 +276,16 @@ module decentralot::fee_distribution {
             remaining_tickets: total_tickets,
             price_per_ticket,
             redeem_price_per_ticket
+        }
+    }
+
+    fun default_epoch_cfg(): EpochConfig {
+        // 50 tickets of 0.1 Sui each
+        EpochConfig {
+            total_tickets: 50,
+            remaining_tickets: 50,
+            price_per_ticket: 100_000_000,
+            redeem_price_per_ticket: 0
         }
     }
 
