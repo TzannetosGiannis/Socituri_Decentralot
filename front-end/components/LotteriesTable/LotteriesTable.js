@@ -78,7 +78,7 @@ const LotteriesTable = ({ lotteries, onReloadData }) => {
                                 </td>
                                 <td className="py-3 px-4">
                                     <FontAwesomeIcon icon={faTrophy} className="mr-2 text-yellow-500" />
-                                    {lottery.prize} SUI
+                                    {lottery.prize / 1_000_000_000} SUI
                                 </td>
                                 <td className="py-3 px-4">{lottery.winning_ticket}</td>
                                 <td className="py-3 px-4">

@@ -158,7 +158,7 @@ const Lottery = ({
                             </div>
                             <div>
                                 <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-300">Price Pool</h2>
-                                <div className="text-2xl lg:text-4xl font-bold text-indigo-500">{(Number(lottery.bank) * (1 - (Number(config.bps) / 10_000))).toFixed(2)} SUI</div>
+                                <div className="text-2xl lg:text-4xl font-bold text-indigo-500">{(Number(lottery.bank) * (1 - (Number(config.bps) / 10_000)) / 1000_000_000 ).toFixed(2)} SUI</div>
                             </div>
                         </div>
                     )}
@@ -174,7 +174,7 @@ const Lottery = ({
                 <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
                     <div className="bg-gray-900 text-white p-8 rounded-lg max-w-lg w-full">
                         <h2 className="text-2xl font-bold mb-4">Purchase Tickets</h2>
-                        <p className="mb-4">Join the lottery and increase your chances of winning big! The current ticket price is <span className="text-indigo-500 font-bold">{lottery.ticketPrice}</span>.</p>
+                        <p className="mb-4">Join the lottery and increase your chances of winning big! The current ticket price is <span className="text-indigo-500 font-bold">{lottery.ticketPrice}</span> MIST.</p>
                         <div className="mb-4">
                             <label htmlFor="amount" className="block mb-2">Number of Tickets:</label>
                             <input type="number" id="amount" value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="bg-gray-800 text-white w-full p-2 rounded-lg" />
