@@ -158,7 +158,7 @@ const Lottery = ({
                             </div>
                             <div>
                                 <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-300">Price Pool</h2>
-                                <div className="text-2xl lg:text-4xl font-bold text-indigo-500">{(Number(lottery.bank) * (1 - (Number(config.bps) / 10_000)) / 1000_000_000 ).toFixed(2)} SUI</div>
+                                <div className="text-2xl lg:text-4xl font-bold text-indigo-500">{(Number(lottery.bank) * (1 - (Number(config.bps) / 10_000))).toFixed(2)} MIST</div>
                             </div>
                         </div>
                     )}

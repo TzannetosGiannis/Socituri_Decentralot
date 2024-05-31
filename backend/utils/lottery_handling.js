@@ -143,7 +143,7 @@ async function newRoundLottery() {
                 }
             }
         }
-        await sleep(3 * 60 * 1000);
+        await sleep(60 * 1000);
     }
 }
 
