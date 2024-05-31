@@ -1,4 +1,3 @@
-
 import {
   useSignAndExecuteTransactionBlock,
 } from "@mysten/dapp-kit";
@@ -6,13 +5,13 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js/utils";
 import React, { useState, useEffect } from "react";
 
-const NftCard = ({ image, endTime, cost }) => {
+const NftCard = ({ image, endTime, cost, onPurchaseSuccess }) => {
   const { mutateAsync: signAndExecuteTransactionBlock } =
     useSignAndExecuteTransactionBlock();
   console.log("I am the NFT card", image, endTime, cost);
 
   const calculateTimeLeft = () => {
-    const difference = (new Date(endTime) - new Date()) / 1000;
+    const difference = new Date(endTime) - new Date();
     let timeLeft = {};
 
     if (difference > 0) {
@@ -73,6 +72,9 @@ const NftCard = ({ image, endTime, cost }) => {
     })
       .then((resp) => {
         console.log(resp.effects);
+        if (onPurchaseSuccess) {
+          onPurchaseSuccess();
+        }
       })
       .catch((err) => {
         console.log(err);
@@ -84,10 +86,6 @@ const NftCard = ({ image, endTime, cost }) => {
   } Hours ${timeLeft.minutes || "00"} Minutes ${
     timeLeft.seconds || "00"
   } Seconds`;
-
-  // if (Object.keys(timeLeft).length === 0) {
-  //   return null; // Remove the component when the countdown reaches zero
-  // }
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden w-72 max-h-[500px]">

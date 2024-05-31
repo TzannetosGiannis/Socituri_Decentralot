@@ -129,6 +129,8 @@ const NftMarketplace = () => {
           return;
         }
         setNft(epochConfigNFT);
+        // Refresh the page to ensure the new NFT is displayed
+        window.location.reload();
       })
       .catch((err) => {
         console.error(err);
@@ -146,7 +148,7 @@ const NftMarketplace = () => {
         <h1 className="text-4xl text-white font-bold text-center">Buy NFT</h1>
         <NftCard
           image="/assets/logo.webp"
-          endTime={lottery.endDate}
+          endTime={1717426800000} // deprecate for now, fixed some days later
           cost={nft.pricePerTicket}
           onPurchaseSuccess={handlePurchaseSuccess} />
         </>
