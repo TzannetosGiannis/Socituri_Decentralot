@@ -3,16 +3,11 @@ import "@/styles/globals.css";
 import { AuthProvider } from "@/store/authContext";
 import AppNavbar from "@/components/AppNavbar/AppNavbar";
 import { useRouter } from "next/router";
-
-import {
-  createNetworkConfig,
-  SuiClientProvider,
-  WalletProvider,
-} from "@mysten/dapp-kit";
+import { createNetworkConfig, SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
 import { getFullnodeUrl } from "@mysten/sui.js/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
 import "@mysten/dapp-kit/dist/index.css";
+import Footer from "@/components/Footer/Footer";
 
 // Config options for the networks you want to connect to
 const { networkConfig } = createNetworkConfig({
@@ -34,10 +29,13 @@ export default function App({ Component, pageProps }) {
             {isHome ? (
               <Component {...pageProps} />
             ) : (
-              <>
+              <div className="flex flex-col min-h-screen">
                 <AppNavbar />
-                <Component {...pageProps} />
-              </>
+                <main className="flex-grow">
+                  <Component {...pageProps} />
+                </main>
+                <Footer />
+              </div>
             )}
           </WalletProvider>
         </SuiClientProvider>
