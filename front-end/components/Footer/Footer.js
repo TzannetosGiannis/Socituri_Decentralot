@@ -8,7 +8,7 @@ const Footer = () => {
             <div className="container mx-auto px-4">
                 <div className="flex flex-col md:flex-row justify-between items-center">
                     <div className="mb-4 md:mb-0 text-center md:text-left">
-                        <h2 className="text-2xl capitalize font-bold mb-2">Team Name</h2>
+                        <h2 className="text-2xl font-bold mb-2">Socituri</h2>
                         <p>Participation in Sui Overflow<br />Designed and Implemented with <FontAwesomeIcon icon={faCoffee} style={{ color: 'beige' }}/> and <FontAwesomeIcon icon={faHeart} style={{ color: 'red' }}/></p>
                         <p className="text-gray-400">Contest Dates: April 21, 2024 - June 15, 2024</p>
                     </div>

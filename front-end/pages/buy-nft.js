@@ -99,7 +99,6 @@ const NftMarketplace = () => {
           alt: "NFT Marketplace Image", // TODO: Add a real image alt text
         },
       ],
-      site_name: "NFT Marketplace", // TODO: Add your site name
     },
     additionalMetaTags: [
       {
@@ -107,8 +106,8 @@ const NftMarketplace = () => {
         content: "NFT, marketplace, buy, collectibles, digital art, blockchain",
       },
       {
-        name: "author", // TODO: Add your company name
-        content: "Your Company Name", // TODO: Add your company name
+        name: "Socituri",
+        content: "Socituri Decentralot",
       },
     ],
   };

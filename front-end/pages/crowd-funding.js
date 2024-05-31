@@ -39,7 +39,6 @@ const CrowdFundingPage = () => {
           alt: 'Crowdfunding Image', // TODO: Add a real image alt text
         },
       ],
-      site_name: 'CrowdFunding Site', // TODO: Add your site name
     },
     additionalMetaTags: [
       {
@@ -47,8 +46,8 @@ const CrowdFundingPage = () => {
         content: 'crowdfunding, campaigns, support, innovation, projects',
       },
       {
-        name: 'author', // TODO: Add your company name
-        content: 'Your Company Name', // TODO: Add your company name
+        name: 'Socituri',
+        content: 'Socituri Decentralot',
       },
     ],
   };

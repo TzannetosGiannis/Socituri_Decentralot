@@ -32,8 +32,8 @@ export default function Home() {
         content: 'home, services, goals, roadmap, company',
       },
       {
-        name: 'author',
-        content: 'Your Company Name',
+        name: "Socituri",
+        content: "Socituri Decentralot",
       },
     ],
   };

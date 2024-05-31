@@ -70,7 +70,6 @@ const ActiveLotteryPageContent = () => {
                     alt: 'Lottery Image', // TODO: Add a real image alt text
                 },
             ],
-            site_name: 'Lottery Site', // TODO: Add your site name
         },
         additionalMetaTags: [
             {
@@ -78,8 +77,8 @@ const ActiveLotteryPageContent = () => {
                 content: 'lottery, tickets, win, prizes, gaming, luck',
             },
             {
-                name: 'author', // TODO: Add your company name
-                content: 'Your Company Name', // TODO: Add your company name
+              name: "Socituri",
+              content: "Socituri Decentralot",
             },
         ],
     };
