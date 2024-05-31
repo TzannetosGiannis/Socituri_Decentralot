@@ -4,13 +4,6 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { faCoffee, faHeart } from '@fortawesome/free-solid-svg-icons';
 
 const Footer = () => {
-    const downloadFile = (filename) => {
-        const link = document.createElement('a');
-        link.href = `/assets/files/${filename}`;
-        link.download = filename;
-        link.click();
-    };
-
     return (
         <footer className="bg-gray-800 text-white py-6">
             <div className="container mx-auto px-4">
@@ -22,7 +15,7 @@ const Footer = () => {
                     </div>
                     <div className="flex flex-col md:flex-row items-center">
                         <div className="mb-4 md:mb-0 md:mr-4">
-                            <a onClick={() => downloadFile('Socituri-Pitch.pptx') } href="#" className="hover:text-gray-400">Pitch</a>
+                            <a href="/assets/files/Socituri-Pitch.pptx" download="Socituri-Pitch.pptx" className="hover:text-gray-400">Pitch</a>
                         </div>
                         <div className="mb-4 md:mb-0 md:mr-4">
                             <a href="/about" className="hover:text-gray-400">About Us</a>
