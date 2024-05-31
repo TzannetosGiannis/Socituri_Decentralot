@@ -284,7 +284,7 @@ module decentralot::fee_distribution {
         EpochConfig {
             total_tickets: 50,
             remaining_tickets: 50,
-            price_per_ticket: 1_000_000,
+            price_per_ticket: 100_000_000,
             redeem_price_per_ticket: 0
         }
     }
