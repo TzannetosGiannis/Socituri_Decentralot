@@ -280,7 +280,7 @@ module decentralot::fee_distribution {
     }
 
     fun default_epoch_cfg(): EpochConfig {
-        // 50 tickets of 0.001 Sui each
+        // 50 tickets of 0.1 Sui each
         EpochConfig {
             total_tickets: 50,
             remaining_tickets: 50,
