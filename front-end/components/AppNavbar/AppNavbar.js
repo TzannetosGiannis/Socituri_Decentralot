@@ -13,15 +13,24 @@ const AppNavbar = () => {
     const navOptions = ["Active Lottery", "Crowd Funding", "Buy NFT"];
 
     useEffect(() => {
-        if (currentAccount?.address) {
-            suiClient.getBalance({
-                owner: currentAccount.address,
-            }).then((resp) => {
-                const bal = resp.totalBalance / Number(MIST_PER_SUI);
-                setBalance(bal.toFixed(2));
-            });
-        }
-    }, [currentAccount]);
+        const fetchBalance = async () => {
+            if (currentAccount?.address) {
+                try {
+                    const resp = await suiClient.getBalance({ owner: currentAccount.address });
+                    const bal = resp.totalBalance / Number(MIST_PER_SUI);
+                    setBalance(bal.toFixed(2));
+                } catch (error) {
+                    console.error("Failed to fetch balance:", error);
+                }
+            }
+        };
+
+        fetchBalance(); // Initial fetch
+
+        const intervalId = setInterval(fetchBalance, 500); // Fetch balance every 60 seconds
+
+        return () => clearInterval(intervalId); // Clear interval on component unmount
+    }, [currentAccount, suiClient]);
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);

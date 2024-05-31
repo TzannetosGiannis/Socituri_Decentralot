@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTicket, faTrophy, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faTicket, faTrophy, faCheck, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { useSignAndExecuteTransactionBlock } from "@mysten/dapp-kit";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
@@ -12,39 +12,37 @@ const LotteriesTable = ({ lotteries }) => {
     const currentAccount = useCurrentAccount();
 
     const handleClaimPrize = (lottery) => {
-        // Implement the logic to claim the prize here
         console.log(`Claiming prize for round ${lottery.round}`);
-        console.log(lottery)
-    
+        console.log(lottery);
+
         const tx = new TransactionBlock();
 
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::lottery::claim_prize`,
             arguments: [
-              tx.object(process.env.NEXT_PUBLIC_CONFIG_ID),
-              tx.object(lottery.campaign_id),
-              tx.object(lottery.lottery_id),
-              tx.object(lottery.winning_ticket_id),
+                tx.object(process.env.NEXT_PUBLIC_CONFIG_ID),
+                tx.object(lottery.campaign_id),
+                tx.object(lottery.lottery_id),
+                tx.object(lottery.winning_ticket_id),
             ],
-          });
-        
+        });
+
         signAndExecuteTransactionBlock({
             transactionBlock: tx,
             options: {
-              showEffects: true,
+                showEffects: true,
             },
-          })
+        })
             .then((resp) => {
-              console.log(resp);
-              !!onSuccess && onSuccess();
+                console.log(resp);
+                !!onSuccess && onSuccess();
             })
             .catch((err) => {
-              console.error(err);
+                console.error(err);
             });
-        
     };
 
-    const shouldShowActionColumn = lotteries.some(lottery => 
+    const shouldShowActionColumn = lotteries.some(lottery =>
         !lottery.claimed && lottery.winner_address === currentAccount?.address
     );
 
@@ -66,10 +64,17 @@ const LotteriesTable = ({ lotteries }) => {
                     </thead>
                     <tbody>
                         {lotteries.map((lottery, index) => (
-                            <tr key={index} className="text-center border-b border-gray-700">
+                            <tr key={index} className={`text-center border-b border-gray-700`}>
                                 <td className="py-3 px-4">
                                     <FontAwesomeIcon icon={faTicket} className="mr-2 text-indigo-500" />
                                     {lottery.round}
+                                    {lottery.prize == 0 && (
+                                        <FontAwesomeIcon 
+                                            icon={faInfoCircle} 
+                                            className="ml-2 text-gray-400 cursor-pointer" 
+                                            title={`Round ${lottery.round}: Nobody participated!`}
+                                        />
+                                    )}
                                 </td>
                                 <td className="py-3 px-4">
                                     <FontAwesomeIcon icon={faTrophy} className="mr-2 text-yellow-500" />

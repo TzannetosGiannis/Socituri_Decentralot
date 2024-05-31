@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTicket, faInfo, faAward } from '@fortawesome/free-solid-svg-icons';
-import { useGetLottery } from '@/hooks/useGetLottery';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import NotFound from '@/components/NotFound/NotFound';
 
@@ -19,12 +18,10 @@ const Lottery = ({
     const [activeTab, setActiveTab] = useState('countdown');
     const [amount, setAmount] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isFetchingNewLottery, setIsFetchingNewLottery] = useState(false);
-    const { lottery: newLottery, fetchLottery: fetchNewLottery } = useGetLottery();
 
     useEffect(() => {
         if (lottery) {
-            setCountdown(Math.max(lottery.endDate - Date.now(), 0));
+            setCountdown(Math.max((lottery.endDate - Date.now()) / 1000, 0));
         }
     }, [lottery]);
 
@@ -32,7 +29,6 @@ const Lottery = ({
         const countdownInterval = setInterval(() => {
             setCountdown(prevCountdown => {
                 if (prevCountdown <= 1) {
-                    setIsFetchingNewLottery(true);
                     return 0;
                 }
                 return prevCountdown - 1;
@@ -41,21 +37,6 @@ const Lottery = ({
 
         return () => clearInterval(countdownInterval);
     }, []);
-
-    useEffect(() => {
-        if (isFetchingNewLottery) {
-            const fetchNewLotteryInterval = setInterval(async () => {
-                await fetchNewLottery();
-                if (newLottery) {
-                    fetchLottery();
-                    setIsFetchingNewLottery(false);
-                    clearInterval(fetchNewLotteryInterval);
-                }
-            }, 5000);
-
-            return () => clearInterval(fetchNewLotteryInterval);
-        }
-    }, [isFetchingNewLottery, newLottery, fetchLottery, fetchNewLottery]);
 
     const handleClickPurchase = () => {
         if (!amount || amount <= 0) return;
@@ -105,7 +86,7 @@ const Lottery = ({
     const formattedTime = formatTime(countdown);
 
     return (
-        <div className="h-screen flex justify-center items-center bg-gray-800 text-white">
+        <div className="h-screen flex justify-center items-center bg-gray-800 text-white" style={{ height: '80vh' }}>
             <div className="container mx-auto max-w-lg">
                 <div className="text-center mb-8">
                     <h1 className="text-4xl lg:text-6xl font-bold mb-2">

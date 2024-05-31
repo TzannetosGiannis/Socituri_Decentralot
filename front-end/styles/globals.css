@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* styles/globals.css */
+body, html, #__next {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  
