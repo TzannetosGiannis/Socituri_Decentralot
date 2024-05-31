@@ -17,12 +17,11 @@ const CampaignCard = ({ campaignId, information }) => {
             <img
               alt={`${information.title} campaign banner`}
               loading="lazy"
-              width="500"
+              width="0"
               height="200"
               decoding="async"
-              className="h-full w-full rounded-t-lg object-cover object-top"
+              className="h-full w-full rounded-t-lg object-contain"
               src={information.bannerImage}
-              style={{ color: 'transparent' }}
             />
           </div>
           <div className="relative flex w-full flex-grow flex-col p-5">

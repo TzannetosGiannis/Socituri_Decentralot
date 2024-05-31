@@ -86,7 +86,7 @@ const Lottery = ({
     const formattedTime = formatTime(countdown);
 
     return (
-        <div className="h-screen flex justify-center items-center bg-gray-800 text-white" style={{ height: '80vh' }}>
+        <div className="flex justify-center items-center bg-gray-800 text-white p-">
             <div className="container mx-auto max-w-lg">
                 <div className="text-center mb-8">
                     <h1 className="text-4xl lg:text-6xl font-bold mb-2">

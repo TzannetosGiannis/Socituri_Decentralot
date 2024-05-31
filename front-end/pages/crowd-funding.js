@@ -65,7 +65,7 @@ const CrowdFundingPage = () => {
   }
 
   return (
-    <div className="bg-gray-800 min-h-screen flex justify-center">
+    <div className="bg-gray-800 flex py-24 justify-center">
       <NextSeo {...seoConfig} />
       <div className="container mx-auto p-4">
         <div className="max-w-11/12 w-full mx-auto">

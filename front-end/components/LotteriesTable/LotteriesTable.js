@@ -5,7 +5,7 @@ import { useCurrentAccount } from '@mysten/dapp-kit';
 import { useSignAndExecuteTransactionBlock } from "@mysten/dapp-kit";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
-const LotteriesTable = ({ lotteries }) => {
+const LotteriesTable = ({ lotteries, onReloadData }) => {
 
     const { mutateAsync: signAndExecuteTransactionBlock } =
         useSignAndExecuteTransactionBlock();
@@ -35,7 +35,7 @@ const LotteriesTable = ({ lotteries }) => {
         })
             .then((resp) => {
                 console.log(resp);
-                !!onSuccess && onSuccess();
+                !!onReloadData && onReloadData(); // Call the onReloadData callback
             })
             .catch((err) => {
                 console.error(err);
@@ -47,7 +47,7 @@ const LotteriesTable = ({ lotteries }) => {
     );
 
     return (
-        <div className="lotteries-table my-8 bg-gray-800 text-white">
+        <div className="lotteries-table my-12 bg-gray-800 text-white">
             <h2 className="text-2xl lg:text-4xl font-bold text-center mb-8">Previous Lotteries</h2>
             <div className="overflow-x-auto">
                 <table className="min-w-full bg-gray-800 text-white rounded-lg">

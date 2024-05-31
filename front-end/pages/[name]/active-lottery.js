@@ -16,7 +16,7 @@ const ActiveLotteryPageContent = () => {
     const router = useRouter();
     const { name, campaignId } = router.query;
 
-    const { lotteryId, previousLotteries, loading, error, config } = useLottery();  // Add config here
+    const { lotteryId, previousLotteries, loading, error, config, fetchLotteryData } = useLottery(); // Add fetchLotteryData here
     const { lottery, isLoading: isLotteryLoading, fetchLottery } = useGetLottery(lotteryId);
     const { handlePurchase, isLoading: isPurchaseLoading } = usePurchaseTicket(lotteryId);
 
@@ -43,6 +43,10 @@ const ActiveLotteryPageContent = () => {
             fetchOwnedTickets();
         }
     }, [currentAccount, lottery, fetchOwnedTickets]);
+
+    const handleReloadData = useCallback(() => {
+        fetchLotteryData();
+    }, [fetchLotteryData]);
 
     if (!router.isReady || loading || isLotteryLoading || isPurchaseLoading) {
         return <LoadingSpinner />;
@@ -77,14 +81,14 @@ const ActiveLotteryPageContent = () => {
                 content: 'lottery, tickets, win, prizes, gaming, luck',
             },
             {
-              name: "Socituri",
-              content: "Socituri Decentralot",
+                name: "Socituri",
+                content: "Socituri Decentralot",
             },
         ],
     };
     
     return (
-        <div className="bg-gray-800 flex flex-col justify-center items-center">
+        <div className="bg-gray-800 flex flex-col justify-center items-center py-24">
             <NextSeo {...seoConfig} />
             <div className="container">
                 <Lottery
@@ -97,7 +101,7 @@ const ActiveLotteryPageContent = () => {
                     fetchLottery={fetchLottery}
                     {...(name && name !== 'socituri' && { lotteryName: name })} // Conditionally pass lotteryName
                 />
-                {previousLotteries.length !== 0 && <LotteriesTable lotteries={previousLotteries} ownedTickets={ownedTickets} />}
+                {previousLotteries.length !== 0 && <LotteriesTable lotteries={previousLotteries} ownedTickets={ownedTickets} onReloadData={handleReloadData} />}
             </div>
         </div>
     );

@@ -115,7 +115,7 @@ const NftMarketplace = () => {
   console.log({ nft, lottery });
 
   return (
-    <div className="bg-gray-800 min-h-screen p-4 flex flex-col items-center gap-y-[24px]">
+    <div className="bg-gray-800 p-4 flex flex-col items-center gap-y-[24px]">
       <NextSeo {...seoConfig} />
       {!!nft && !!lottery && (
         <NftCard

@@ -1,4 +1,3 @@
-// _app.js
 import "@/styles/globals.css";
 import { AuthProvider } from "@/store/authContext";
 import AppNavbar from "@/components/AppNavbar/AppNavbar";
@@ -29,7 +28,7 @@ export default function App({ Component, pageProps }) {
             {isHome ? (
               <Component {...pageProps} />
             ) : (
-              <div className="flex flex-col min-h-screen">
+              <div className="flex flex-col bg-gray-800 min-h-screen">
                 <AppNavbar />
                 <main className="flex-grow">
                   <Component {...pageProps} />

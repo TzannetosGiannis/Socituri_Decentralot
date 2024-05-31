@@ -15,7 +15,7 @@ const Footer = () => {
                     </div>
                     <div className="flex flex-col md:flex-row items-center">
                         <div className="mb-4 md:mb-0 md:mr-4">
-                            <a href="/assets/files/Socituri-Pitch.pptx" download="Socituri-Pitch.pptx" className="hover:text-gray-400">Pitch</a>
+                            <a href="/assets/files/Socituri-Pitch.pdf" download="Socituri-Pitch.pdf" className="hover:text-gray-400">Pitch</a>
                         </div>
                         <div className="mb-4 md:mb-0 md:mr-4">
                             <a href="/about" className="hover:text-gray-400">About Us</a>
