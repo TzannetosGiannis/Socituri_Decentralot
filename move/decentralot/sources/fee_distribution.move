@@ -24,8 +24,7 @@ module decentralot::fee_distribution {
 
     // === Constants ===
     const FIFTY_SUI: u64 = 50_000000000; // 50 SUI
-    // TODO Change this for mainnet
-    const ONE_WEEK: u64 = 600_000; // 1 week in ms
+    const ONE_WEEK: u64 = 604_800_000; // 1 week in ms
     
     // === Structs ===
     struct FeeDistribution has key, store {
