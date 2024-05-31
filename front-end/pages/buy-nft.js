@@ -119,17 +119,37 @@ const NftMarketplace = () => {
     ],
   };
 
+  const handlePurchaseSuccess = () => {
+    getEpochConfigNFT()
+      .then((epochConfigNFT) => {
+        console.log({ epochConfigNFT });
+        if (!epochConfigNFT) {
+          console.error("Epoch config NFT not found");
+          setNft(null);
+          return;
+        }
+        setNft(epochConfigNFT);
+      })
+      .catch((err) => {
+        console.error(err);
+        setNft(null);
+      });
+  };
+
   console.log({ nft, lottery });
 
   return (
-    <div className="bg-gray-800 p-4 flex flex-col items-center gap-y-[24px]">
+    <div className="bg-gray-800 flex flex-col items-center p-24 gap-y-[24px]">
       <NextSeo {...seoConfig} />
       {!!nft && !!lottery && (
+        <>
+        <h1 className="text-4xl text-white font-bold text-center">Buy NFT</h1>
         <NftCard
           image="/assets/logo.webp"
           endTime={lottery.endDate}
           cost={nft.pricePerTicket}
-        />
+          onPurchaseSuccess={handlePurchaseSuccess} />
+        </>
       )}
       <OwnedTickets />
     </div>

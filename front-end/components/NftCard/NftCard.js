@@ -9,10 +9,10 @@ import React, { useState, useEffect } from "react";
 const NftCard = ({ image, endTime, cost }) => {
   const { mutateAsync: signAndExecuteTransactionBlock } =
     useSignAndExecuteTransactionBlock();
-  console.log("I am the NFT card");
+  console.log("I am the NFT card", image, endTime, cost);
 
   const calculateTimeLeft = () => {
-    const difference = new Date(endTime) - new Date();
+    const difference = (new Date(endTime) - new Date()) / 1000;
     let timeLeft = {};
 
     if (difference > 0) {

@@ -84,7 +84,7 @@ import {
   
     return (
       <div className="text-white flex flex-col gap-y-[32px] items-center">
-        <div>Owned Tickets</div>
+        <h1 className="text-4xl font-bold text-center">Owned Tickets</h1>
         {!ownedTickets.length && <div>No tickets owned</div>}
         <div className="flex flex-wrap gap-[12px]">
           {ownedTickets.map((ticket, index) => (
@@ -93,7 +93,7 @@ import {
               className="bg-white rounded-lg shadow-md overflow-hidden w-72"
             >
               <img
-                src={"https://via.placeholder.com/300x200"}
+                src="/assets/logo.webp"
                 alt="NFT"
                 className="w-full h-[200px] object-cover"
               />
