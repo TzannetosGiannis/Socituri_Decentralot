@@ -110,7 +110,7 @@ export const OwnedTickets = () => {
                 <p className="text-lg font-semibold">Ticket ID:</p>
                 <p
                   className="text-sm text-gray-600 cursor-pointer"
-                  onClick={() => handleCopyToClipboard(formatAddress(ticket.id))}
+                  onClick={() => handleCopyToClipboard(ticket.id)}
                 >
                   {formatAddress(ticket.id)}
                 </p>
