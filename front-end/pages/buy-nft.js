@@ -80,6 +80,13 @@ const NftMarketplace = () => {
           totalTickets: Number(data.total_tickets),
         };
         return formatted;
+      }).catch((error) => {
+        const formatted = {
+          pricePerTicket: 0.1,
+          remainingTickets: 50,
+          totalTickets: 50,
+        };
+        return formatted;
       });
   };
 
@@ -119,7 +126,7 @@ const NftMarketplace = () => {
       <NextSeo {...seoConfig} />
       {!!nft && !!lottery && (
         <NftCard
-          image="https://via.placeholder.com/300x200"
+          image="/assets/logo.webp"
           endTime={lottery.endDate}
           cost={nft.pricePerTicket}
         />

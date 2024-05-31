@@ -2,11 +2,11 @@ import React from 'react';
 
 const TestnetContractInfo = () => {
     const contractInfo = [
-        { label: 'PACKAGE_ID', value: '0x3c3a91a30e7b6a420558fa39a2592b7a33a0b667e6b4ea58efa140c4269adb27' },
-        { label: 'ADMIN_CAP', value: '0x40f811d90c6f8a0554c54be4145387919533d0b5ec7845b2ee7577fe15f6633b' },
-        { label: 'CONFIG', value: '0xcf860967b45e23ea18cbd5a7ba18f3608cac5478707539ae40eb639383e0c55c' },
-        { label: 'FEE_DISTRIBUTION', value: '0x85d0a3d7837c52827267029dab09110824e137c2a463699be484e38d87349060' },
-        { label: 'INCENTIVE_TREASURY', value: '0x8e962aac249c83bbe7f46eb4414f2150de9772b88d2b166c98269313ad7f1d2b' },
+        { label: 'PACKAGE_ID', value: '0xff820a72e725cb117437b8108a895ac6decf6f0ecd1ca98129516e0654124a1c' },
+        { label: 'ADMIN_CAP', value: '0x86210a1a6ade8326cd95fda9653e26142518eff599d33e84190457c1ec1d2715' },
+        { label: 'CONFIG', value: '0x05f1e1750e4d2799ed36cc1fc2c07e0118b1a6f22b5e2afaa5e41d3169dd0c96' },
+        { label: 'FEE_DISTRIBUTION', value: '0xbfd9df3883f65e399f9829e0352d43853b0cf389a57b760a83571bab5231c968' },
+        { label: 'INCENTIVE_TREASURY', value: '0x300fd7bd984857fb44638f3d59bd6578b3f42732cd930f951163c7330b5255f0' },
     ];
 
     return (
