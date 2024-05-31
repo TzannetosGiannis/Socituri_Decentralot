@@ -19,6 +19,8 @@ async function fetch_campaign(req,res,next) {
     let campaign_id = mainCampaign.campaignId;
     let current_lottery_id;
     let toBeDeleted;
+    let maxCurrentRound = -1;
+    let maxRoundId = 0;
 
     // identify current lottery for main page
     for(let i = 0; i < mainCampaign.previousLotteries.length; i++) {
@@ -27,9 +29,15 @@ async function fetch_campaign(req,res,next) {
             current_lottery_id = mainCampaign.previousLotteries[i].lottery_id;
             break;
         }  
+
+        if (maxCurrentRound < Number(mainCampaign.previousLotteries[i].round)) {
+            maxCurrentRound = Number(mainCampaign.previousLotteries[i].round);
+            maxRoundId = i;
+        }
     }
     // send only the previous lotteries
     let previousLotteries =  mainCampaign.previousLotteries.filter((_, i) => i !== toBeDeleted);
+    if(!current_lottery_id && maxCurrentRound != -1) current_lottery_id = mainCampaign.previousLotteries[maxRoundId].lottery_id;
     return res.send({campaign_id,current_lottery_id,previousLotteries});
 
 }
