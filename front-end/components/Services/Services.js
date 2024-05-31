@@ -14,7 +14,7 @@ const Services = () => {
             description: "Users can actively participate in protocol earnings, gaining rewards and contributing to the growth and sustainability of the platform."
         },
         {
-            image: "/assets/services/trustless-verifiable.webp",
+            image: "/assets/services/crowdfunding.webp",
             title: "Bootstrap Crowdfunding Lottery Campaigns",
             description: "Kickstart your projects with our bootstrap crowdfunding lottery campaigns, providing a unique and engaging way to raise funds."
         },
