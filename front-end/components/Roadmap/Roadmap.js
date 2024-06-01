@@ -10,8 +10,8 @@ const Roadmap = () => {
             tasks: [
                 { name: "Developed Contracts", done: true },
                 { name: "Launch Dapp v1", done: true },
-                { name: "Contract audits", done: false },
-                { name: "Deployment on testnet", done: false }
+                { name: "Contract audits", done: true },
+                { name: "Deployment on testnet", done: true }
             ]
         },
         {
