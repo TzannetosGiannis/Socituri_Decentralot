@@ -10,8 +10,8 @@ const Roadmap = () => {
             tasks: [
                 { name: "Developed Contracts", done: true },
                 { name: "Launch Dapp v1", done: true },
-                { name: "Contract audits", done: true },
-                { name: "Deployment on testnet", done: true }
+                { name: "Deployment on testnet", done: true },
+                { name: "Contract audits", done: false }
             ]
         },
         {
@@ -24,7 +24,7 @@ const Roadmap = () => {
                 { name: "Decentralot Points launch", done: false },
                 { name: "Secure incentives from partners", done: false },
                 { name: "Permissionless lottery launchpad", done: false },
-                { name: "Democratize protocol fees to community", done: false },   
+                { name: "Democratize protocol fees to community", done: false },
             ]
         },
         {
@@ -34,7 +34,7 @@ const Roadmap = () => {
             tasks: [
                 { name: "Strategic ecosystem partnerships", done: false },
                 { name: "Design tokenomics", done: false },
-                { name: "DAO launch", done: false },    
+                { name: "DAO launch", done: false },
             ]
         }
         // Add more phases as needed

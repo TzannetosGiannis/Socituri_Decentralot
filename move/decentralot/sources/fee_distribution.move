@@ -24,7 +24,7 @@ module decentralot::fee_distribution {
 
     // === Constants ===
     const FIFTY_SUI: u64 = 50_000000000; // 50 SUI
-    const ONE_WEEK: u64 = 604_800_000; // 1 week in ms
+    const ONE_MONTH: u64 = 2_629_800_000; // 1 month in ms
     
     // === Structs ===
     struct FeeDistribution has key, store {
@@ -258,7 +258,7 @@ module decentralot::fee_distribution {
 
     // === View functions ===
     public fun current_epoch(clock: &Clock): u64 {
-        clock::timestamp_ms(clock) / ONE_WEEK
+        clock::timestamp_ms(clock) / ONE_MONTH
     }
 
     // === Private functions ===
