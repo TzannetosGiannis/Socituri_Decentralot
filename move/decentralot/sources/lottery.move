@@ -14,10 +14,7 @@ module decentralot::lottery {
     use std::string::{String, utf8};
 
 
-    // TODO Uncomment when there is native on-chain randomness on testnet 
-    // use sui::random::Random;
-    use std::hash::sha2_256;
-    use std::vector;
+    use sui::random::{Self, Random};
 
     use decentralot::crowdfunding::{Self, CrowdFunding};
     use decentralot::refund;
@@ -261,7 +258,7 @@ module decentralot::lottery {
         transfer::public_share_object(new_lottery);
     }
 
-    entry fun end_lottery(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, clock: &Clock, ctx: &mut TxContext){
+    entry fun end_lottery(cfg: &Config, campaign: &mut Campaign, lottery: &mut Lottery, fd: &mut FeeDistribution, r: &Random, clock: &Clock, ctx: &mut TxContext){
         config::assert_version(cfg);
         
         assert!(object::id(campaign) == lottery.campaign, ECampaignMissmatch);
@@ -286,14 +283,11 @@ module decentralot::lottery {
             crowdfunding::add_funds(option::borrow_mut(&mut campaign.crowdfunding), cf_coin);
         };
 
-
-        // @TODO Uncomment when there is native on-chain randomness on testnet 
-        // if (lottery.total_tickets != 0){
-        //     let generator = random::new_generator(r, ctx);
-        //     winner = random::generate_u64_in_range(&mut generator, 0, lottery.total_tickets - 1);   
-        // };
-
-        let winner = temp_prng(lottery.total_tickets, ctx);
+        let winner = 0;
+        if (lottery.total_tickets != 0){
+            let generator = random::new_generator(r, ctx);
+            winner = random::generate_u64_in_range(&mut generator, 0, lottery.total_tickets - 1);   
+        };
 
         lottery.winner = option::some(winner);
         campaign.latest_lotery = option::none();
@@ -524,31 +518,5 @@ module decentralot::lottery {
             round,
             winner: option::none()
         }
-    }
-
-    // @TODO Remove when there is native on-chain randomness on testnet
-    fun temp_prng(n:u64, ctx: &mut TxContext): u64 {
-        if (n == 0){
-            return 0
-        };
-
-        let rand_obect = object::new(ctx);
-        let rand = object::uid_to_bytes(&rand_obect);
-        let rnd = sha2_256(rand);
-
-        let m: u128 = 0;
-        let i = 0;
-        while (i < 16) {
-            m = m << 8;
-            let curr_byte = *vector::borrow(&rnd, i);
-            m = m + (curr_byte as u128);
-            i = i + 1;
-        };
-        let n_128 = (n as u128);
-        let module_128  = m % n_128;
-        let res = (module_128 as u64);
-
-        object::delete(rand_obect);
-        res
     }
 }
