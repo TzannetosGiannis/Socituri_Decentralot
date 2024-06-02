@@ -49,6 +49,7 @@ async function __end__lottery(campaign_id,lottery_id) {
         tx.object(campaign_id),
         tx.object(lottery_id),
         tx.object(process.env.FEE_DISTRIBUTION),
+        tx.object('0x8'),
         tx.object(SUI_CLOCK_OBJECT_ID),
         ],
     });
@@ -143,7 +144,7 @@ async function newRoundLottery() {
                 }
             }
         }
-        await sleep(2 * 60 * 1000);
+        await sleep(3 * 60 * 1000);
     }
 }
 
